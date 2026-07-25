@@ -1,0 +1,8 @@
+# Monorepo Dockerignore
+**/node_modules
+**/dist
+**/build
+**/target
+**/.vite
+.git
+*.log
