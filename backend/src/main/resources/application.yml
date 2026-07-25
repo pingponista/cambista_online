@@ -8,9 +8,9 @@ spring:
     name: cambista-backend
 
   datasource:
-    url: jdbc:postgresql://ep-young-tooth-ac5b010f-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require
-    username: neondb_owner
-    password: npg_AY5CZpn3baeK
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/cambista_db}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
 
     hikari:
