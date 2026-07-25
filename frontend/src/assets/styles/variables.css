@@ -1,0 +1,38 @@
+:root {
+  /* Brand Colors */
+  --color-primary: #0f172a;
+  --color-primary-hover: #1e293b;
+  --color-accent-green: #10b981;
+  --color-accent-green-hover: #059669;
+  --color-accent-green-light: rgba(16, 185, 129, 0.12);
+  
+  --color-accent-blue: #3b82f6;
+  --color-accent-yellow: #f59e0b;
+  --color-accent-red: #ef4444;
+
+  /* Backgrounds & Neutral */
+  --bg-main: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-dark-card: #1e293b;
+  
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-inverse: #ffffff;
+
+  --border-color: #e2e8f0;
+  --border-focus: #10b981;
+
+  /* Typography */
+  --font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  --font-numeric: 'JetBrains Mono', 'Inter', monospace;
+
+  /* Elevation & Effects */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-card: 0 10px 30px -5px rgba(15, 23, 42, 0.08);
+  --shadow-glow: 0 0 20px rgba(16, 185, 129, 0.2);
+
+  --border-radius-sm: 8px;
+  --border-radius: 14px;
+  --border-radius-lg: 20px;
+  --border-radius-pill: 9999px;
+}

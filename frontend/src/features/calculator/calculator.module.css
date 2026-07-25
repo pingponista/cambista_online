@@ -1,0 +1,251 @@
+.calculatorCard {
+  max-width: 490px;
+  margin: 0 auto;
+}
+
+.rateHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.liveRateBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-main);
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--border-radius-pill);
+  border: 1px solid var(--border-color);
+}
+
+.pulseDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent-green);
+  box-shadow: 0 0 10px var(--color-accent-green);
+  animation: pulseGreen 1.5s infinite;
+}
+
+@keyframes pulseGreen {
+  0% { transform: scale(0.95); opacity: 1; }
+  50% { transform: scale(1.25); opacity: 0.5; }
+  100% { transform: scale(0.95); opacity: 1; }
+}
+
+.operationTabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--bg-main);
+  padding: 4px;
+  border-radius: var(--border-radius);
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.tabBtn {
+  padding: 0.85rem;
+  border-radius: var(--border-radius-sm);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  background: transparent;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.tabActive {
+  background: var(--bg-surface);
+  color: var(--color-accent-green-hover);
+  box-shadow: var(--shadow-sm);
+}
+
+.inputCard {
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 1rem 1.2rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: border-color 0.2s ease;
+}
+
+.inputCard:focus-within {
+  border-color: var(--color-accent-green);
+}
+
+.inputLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.amountInput {
+  background: transparent;
+  border: none;
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--text-main);
+  width: 100%;
+  outline: none;
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
+}
+
+.swapContainer {
+  display: flex;
+  justify-content: center;
+  margin: -0.6rem 0;
+  position: relative;
+  z-index: 10;
+}
+
+.swapBtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-accent-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--bg-surface);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+  transition: transform 0.2s ease;
+  cursor: pointer;
+}
+
+.swapBtn:hover {
+  transform: rotate(180deg) scale(1.05);
+}
+
+.savingsWrapper {
+  margin: 1.2rem 0;
+  text-align: center;
+}
+
+/* Promo Banner */
+.promoBanner {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius);
+  font-size: 0.88rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.2rem;
+}
+
+/* CambiPuntos Section */
+.pointsCard {
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  color: #5b21b6;
+  border-radius: var(--border-radius);
+  padding: 1.2rem;
+  margin-top: 1.2rem;
+  margin-bottom: 1.2rem;
+}
+
+.pointsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 0.8rem;
+}
+
+.pointsSlider {
+  width: 100%;
+  accent-color: #7c3aed;
+  cursor: pointer;
+  margin-bottom: 0.6rem;
+}
+
+.pointsFooter {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #6d28d9;
+  font-weight: 600;
+}
+
+/* Rate Breakdown Section */
+.breakdownToggle {
+  background: transparent;
+  border: none;
+  color: var(--text-main);
+  font-weight: 700;
+  font-size: 0.92rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  padding: 0.4rem 0;
+  margin-top: 0.8rem;
+  margin-bottom: 0.4rem;
+  width: 100%;
+  text-align: left;
+}
+
+.breakdownBox {
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 1.2rem;
+  margin-bottom: 1.2rem;
+  font-family: var(--font-numeric);
+}
+
+.breakdownRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  padding: 0.35rem 0;
+}
+
+.breakdownDivider {
+  border-top: 1px solid var(--border-color);
+  margin: 0.6rem 0;
+}
+
+.breakdownTotal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-main);
+  padding-top: 0.2rem;
+}
+
+.pointsEarnNotice {
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin-top: 1rem;
+}
+
+.pointsEarnNotice strong {
+  color: var(--color-accent-green-hover);
+  font-weight: 800;
+}
+
