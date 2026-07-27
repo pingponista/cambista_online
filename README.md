@@ -141,7 +141,7 @@ Crea o edita el archivo `backend/.env` con tus credenciales de Neon PostgreSQL:
 SPRING_DATASOURCE_URL=jdbc:postgresql://ep-young-tooth-ac5b010f-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require
 SPRING_DATASOURCE_USERNAME=tu_usuario_neondb
 SPRING_DATASOURCE_PASSWORD=tu_password_de_neon
-JWT_SECRET=404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+JWT_SECRET=tu_jwt_secret
 JWT_EXPIRATION_MS=3600000
 ```
 
