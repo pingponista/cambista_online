@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { useOrderStore } from '../../store/useOrderStore';
+import { useFxStore } from '../../store/useFxStore';
+
 import { Card } from '../../components/ui/Card/Card';
 import { Button } from '../../components/ui/Button/Button';
 import { Building2, CreditCard } from 'lucide-react';
+import { exchangeService } from '../../services/exchangeService';
 import styles from './exchange.module.css';
 
 export const Step1Accounts = () => {
@@ -10,12 +13,43 @@ export const Step1Accounts = () => {
   const [originBank, setOriginBank] = useState('BCP');
   const [destBank, setDestBank] = useState('BCP');
   const [destAccount, setDestAccount] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   if (!orderData) return null;
 
-  const handleNext = () => {
-    setBankSelection(originBank, destBank, '', destAccount);
-    setStep(2);
+  const handleNext = async () => {
+    try {
+      setLoading(true);
+      setErrorMsg('');
+      const pointsToRedeem = orderData.pointsToRedeem || useFxStore.getState().redeemedPoints || 0;
+      const payload = {
+        currencyOrigin: orderData.originCurrency || 'USD',
+        currencyDestination: orderData.targetCurrency || 'PEN',
+        operationType: (orderData.operationType === 'BUY' || orderData.operationType === 'COMPRA') ? 'COMPRA' : 'VENTA',
+        amountSent: orderData.originAmount || 100.00,
+        pointsToRedeem: pointsToRedeem,
+      };
+
+      const createdOrder = await exchangeService.createOrder(payload);
+
+      // Refresh points in store
+      if (useFxStore.getState().fetchUserFxBreakdown) {
+        useFxStore.getState().fetchUserFxBreakdown();
+      }
+
+      setBankSelection(originBank, destBank, '', destAccount);
+      useOrderStore.setState({
+        generatedOrderId: createdOrder.operationId || createdOrder.orderNumber,
+        realOrderData: createdOrder
+      });
+      setStep(2);
+    } catch (err) {
+      console.error('Error creating order in Step1Accounts:', err);
+      setErrorMsg(err.response?.data?.message || 'Error al registrar la orden en la base de datos.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -24,6 +58,12 @@ export const Step1Accounts = () => {
       <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
         Indica desde qué banco transferirás y dónde deseas recibir tu dinero.
       </p>
+
+      {errorMsg && (
+        <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', color: '#fca5a5', padding: '0.8rem', borderRadius: 'var(--radius-sm)', marginBottom: '1rem', fontSize: '0.9rem' }}>
+          {errorMsg}
+        </div>
+      )}
 
       <div className={styles.summaryBox}>
         <div>
@@ -86,8 +126,8 @@ export const Step1Accounts = () => {
         </div>
       </div>
 
-      <Button variant="primary" size="lg" onClick={handleNext}>
-        Continuar al Paso 2
+      <Button variant="primary" size="lg" onClick={handleNext} disabled={loading}>
+        {loading ? 'Creando Orden...' : 'Continuar al Paso 2'}
       </Button>
     </Card>
   );

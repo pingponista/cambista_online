@@ -1,176 +1,20 @@
 # 💱 CambistaOnline - Plataforma Fintech de Cambio de Divisas
 
-[![Java](https://img.shields.io/badge/Java-17-orange.svg)](https://adoptium.net/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.1-brightgreen.svg)](https://spring.io/projects/spring-boot)
-[![React](https://img.shields.io/badge/React-18-blue.svg)](https://react.dev/)
-[![Vite](https://img.shields.io/badge/Vite-5-purple.svg)](https://vitejs.dev/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon.tech-blue.svg)](https://neon.tech/)
-[![Docker](https://img.shields.io/badge/Docker-Compose-blue.svg)](https://www.docker.com/)
-[![Architecture](https://img.shields.io/badge/Architecture-Onion%20%2F%20Package--by--Feature-darkgreen.svg)]()
+[![Java 17](https://img.shields.io/badge/Java-17-orange.svg)](https://adoptium.net/)
+[![Spring Boot 3.3.1](https://img.shields.io/badge/Spring%20Boot-3.3.1-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![React 18](https://img.shields.io/badge/React-18-blue.svg)](https://react.dev/)
+[![Vite 5](https://img.shields.io/badge/Vite-5-purple.svg)](https://vitejs.dev/)
+[![PostgreSQL Neon](https://img.shields.io/badge/PostgreSQL-Neon.tech-blue.svg)](https://neon.tech/)
+[![Docker Compose](https://img.shields.io/badge/Docker-Compose-blue.svg)](https://www.docker.com/)
+[![Architecture](https://img.shields.io/badge/Architecture-Onion%20%2F%20Hexagonal-darkgreen.svg)]()
 
-**CambistaOnline** es una aplicación web financiera de grado empresarial diseñada para la cotización e intercambio de divisas en tiempo real entre **Dólares (USD)**, **Euros (EUR)** y **Soles (PEN)**. Ofrece soporte integral tanto para **Persona Natural** (DNI/CE) como para **Persona Jurídica** (RUC 10/20, Razón Social y Representante Legal).
-
-Construida sobre una estructura de **Monorepo Ligero** con separación estricta entre el Frontend (`/frontend`) y el Backend (`/backend`).
+**CambistaOnline** es una plataforma web financiera de grado empresarial diseñada para la cotización e intercambio de divisas en tiempo real entre **Dólares (USD)**, **Euros (EUR)** y **Soles (PEN)**. Ofrece soporte integral para **Persona Natural** (DNI/CE) y **Persona Jurídica** (RUC 10/20, Razón Social y Representante Legal), respaldada por una arquitectura robusta, escalable y mantenible basada en **Onion Architecture** (Arquitectura Cebolla).
 
 ---
 
-## 🏛️ Estrategia de Monorepo & Arquitectura del Proyecto
+## 🏛️ ¿Por qué Arquitectura ONION (Arquitectura Cebolla)?
 
-```text
-cambista_online/
-├── docker-compose.yml        # Orquestación de contenedores Frontend y Backend
-├── .dockerignore             # Exclusión de librerías locales durante el build de Docker
-├── .env.example              # Plantilla segura de variables de entorno para GitHub
-├── backend/                  # API REST Enterprise en Java 17 + Spring Boot 3 (Onion Architecture)
-│   ├── Dockerfile            # Multi-stage build (Maven 3.9 + JRE 17 Alpine)
-│   ├── src/main/java/        # Código fuente estructurado por Feature (com.cambistaonline.auth.*)
-│   ├── src/main/resources/   # application.yml, Logback y Migraciones SQL Flyway (V1, V2, V3)
-│   └── src/test/java/        # Pruebas Unitarias y Validación de Arquitectura con ArchUnit
-│
-└── frontend/                 # Aplicación Web React + Vite + CSS Modules + Zustand
-    ├── Dockerfile            # Multi-stage build (Node 20 Slim -> Nginx Alpine)
-    ├── nginx.conf            # Servidor Web y Reverse Proxy (/api -> backend:8080)
-    ├── src/components/       # UI Library (Button, Card, Badge, CurrencySelector, TimerBadge)
-    ├── src/features/         # Módulos Funcionales (calculator, exchange, auth, dashboard)
-    ├── src/store/            # Estado Global con Zustand (useAuthStore, useFxStore, useOrderStore)
-    └── src/services/         # Cliente API Axios estandarizado (apiClient.js, apiAuth.js)
-```
-
----
-
-## 🐳 Importancia del uso de Docker en esta Arquitectura
-
-El uso de **Docker y Docker Compose** en este proyecto no es solo una herramienta de despliegue, sino una **pieza fundamental para garantizar la integridad arquitectónica y operativa del sistema**:
-
-1. **Aislamiento Estricto de la Arquitectura Onion**:
-   El núcleo de dominio en Java 17 (`Domain Layer`) no posee ninguna dependencia de framework ni del sistema operativo subyacente. Docker encapsula la JVM dentro de un contenedor inmutable (`eclipse-temurin:17-jre-alpine`), garantizando que la aplicación se comporte exactamente igual sin importar el sistema operativo del desarrollador (Windows, macOS o Linux).
-
-2. **Paridad Total de Entornos (*Environment Parity*)**:
-   Elimina el clásico problema *"en mi máquina sí funciona"*. Las versiones de Node.js (20 Slim), Nginx (Alpine), Java (17 Alpine) y compiladores están fijadas en las imágenes de Docker, asegurando que todos los desarrolladores ejecuten la misma versión de software y binarios en cualquier momento.
-
-3. **Seguridad y Aislamiento de Red**:
-   El contenedor del Frontend expone públicamente Nginx en el puerto `3000` y actúa como un **Reverse Proxy interno** hacia el puerto `8080` del contenedor Backend. Esto blinda el backend y previene la exposición directa de servicios de base de datos o puertos internos.
-
-4. **Despliegue Cero-Configuración**:
-   Un nuevo desarrollador no necesita instalar manualmente Node, Nginx, Java JDK ni Maven en su computadora. Únicamente requiere **Docker Desktop** y ejecutar `docker compose up --build -d`.
-
----
-
-## 🌟 Características Principales del Sistema
-
-### 1. Cotizador Inteligente y Desglose de Tasa de Cambio
-- **Tasa en Vivo con Contador de Bloqueo**: Temporizador de 5 minutos con actualización de tasa y botón de congelamiento de precio.
-- **Módulo de CambiPuntos ⭐**: Slider interactivo para canjear puntos de fidelidad y mejorar el tipo de cambio recibido en tiempo real (`+0.00XX`).
-- **Desglose Transparente de Tasa**: Visualización detallada de `TC base (SBS)`, `Spread Preferencial`, `Ajuste Horario`, `Ajuste Estacional` y `Canje de Puntos`.
-- **Cálculo de Ahorro**: Estimador de ahorro comparativo en tiempo real frente a los bancos tradicionales.
-
-### 2. Flujo de Intercambio en 3 Pasos (Stepper UI)
-- **Paso 1 (Cuentas)**: Selección de banco de origen y banco de destino para la transferencia.
-- **Paso 2 (Transferencia)**: Copia rápida en 1-clic del número de cuenta/CCI del Cambista y carga del comprobante de pago.
-- **Paso 3 (Constancia Digital)**: Rastreador de estado de la operación en tiempo real con resumen de la transacción.
-
-### 3. Autenticación Empresarial & Roles de Usuario
-- **Registro Dual**: Soporte diferenciado para **Persona Natural** (`rol: "N"`) y **Persona Jurídica** (`rol: "J"`).
-- **Seguridad Stateless (Spring Security 6 + JWT)**: Autenticación por firma JWT con hash BCrypt y manejo de sesiones sin estado.
-- **Modo Demo Rápido**: Credenciales de desarrollo integradas para saltearse autenticación durante pruebas.
-
----
-
-## 🛠️ Requisitos Previos
-
-- **Docker Desktop** (con soporte para WSL2 o Virtualización activo) -> [Descargar Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- **Git**
-- *(Opcional para desarrollo local sin Docker: Java JDK 17, Apache Maven 3.9+, Node.js 18+)*.
-
----
-
-## 🚀 Despliegue con Docker Compose (Opción Recomendada)
-
-### Paso 1: Clonar el Repositorio
-
-```bash
-git clone https://github.com/TU_USUARIO/cambista_online.git
-cd cambista_online
-```
-
----
-
-### Paso 2: Crear el archivo `.env` local
-
-Copia la plantilla de variables de entorno hacia `/backend/.env`:
-
-```powershell
-cd backend
-Copy-Item .env.example .env
-```
-
-Ingresa tus credenciales de base de datos PostgreSQL o **Neon.tech** dentro de `backend/.env`:
-
-```env
-SPRING_DATASOURCE_URL=jdbc:postgresql://ep-young-tooth-ac5b010f-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require
-SPRING_DATASOURCE_USERNAME=neondb_owner
-SPRING_DATASOURCE_PASSWORD=tu_password_de_neon
-JWT_SECRET=404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
-JWT_EXPIRATION_MS=3600000
-```
-
----
-
-### Paso 3: Levantar los Contenedores con Docker Compose
-
-Desde la raíz del repositorio (`cambista_online`), ejecuta:
-
-```powershell
-docker compose up --build -d
-```
-
-> ℹ️ **Migración Automática**: Al iniciar el contenedor Backend, **Flyway** creará automáticamente en Neon la tabla `users`, los índices optimizados y los datos semilla (`V1`, `V2`, `V3`).
-
-#### 🌐 URLs de Acceso:
-- **Aplicación Web Frontend (React + Nginx)**: 👉 **`http://localhost:3000`**
-- **Documentación REST Backend (Swagger UI)**: 👉 **`http://localhost:8080/swagger-ui.html`**
-
----
-
-## 🔋 Gestión de Recursos y Ahorro de Batería en Docker
-
-Para optimizar el rendimiento y evitar el consumo innecesario de energía/batería en tu laptop:
-
-### Pausar y Reanudar Rápidamente (Sin destruir contenedores)
-- **Pausar ejecución**:
-  ```powershell
-  docker compose stop
-  ```
-- **Reanudar en 1 segundo**:
-  ```powershell
-  docker compose start
-  ```
-
-### Apagar los Contenedores por Completo
-```powershell
-docker compose down
-```
-
-### Cerrar el Servidor de Docker Desktop
-1. Ve a la barra de tareas de Windows (esquina inferior derecha junto al reloj).
-2. Haz clic derecho en el icono de la **ballena de Docker** 🐳.
-3. Selecciona **`Quit Docker Desktop`**.
-
----
-
-## 🔑 Credenciales Demo para Pruebas Rápidas
-
-Para ingresar rápidamente al Cotizador y Flujo de Cambio sin necesidad de registrar una cuenta manualmente:
-
-- **Correo electrónico**: `demo@cambistaonline.pe`
-- **Contraseña**: `demo1234`
-- *(En la pantalla de Login encontrarás el botón de 1-clic: `⚡ Ingresar directamente con Demo`)*.
-
----
-
-## 📐 Diseño Arquitectónico del Backend (`Onion Architecture`)
-
-El backend aplica **Onion Architecture estricta** e **Inversión de Dependencias (DIP)**:
+En plataformas bancarias y fintech de alto volumen, la lógica de negocio y las reglas del motor de tipo de cambio deben **permanecer completamente aisladas de detalles de infraestructura** como frameworks web, librerías ORM o proveedores de base de datos.
 
 ```text
                +---------------------------------------------------+
@@ -188,25 +32,126 @@ El backend aplica **Onion Architecture estricta** e **Inversión de Dependencias
                +---------------------------------------------------+
 ```
 
-- **Domain Layer (`POJO Puro`)**: Cero dependencias de Spring Boot o JPA. Contiene Entidades (`User`), Objetos de Valor (`Email`, `Password`, `Dni`, `Ruc`), Excepciones de Negocio y **Puertos** (interfaces). Validado mecánicamente con **ArchUnit**.
-- **Application Layer**: Casos de Uso (`RegisterUserUseCase`, `AuthenticateUserUseCase`, `GetCurrentUserUseCase`), DTOs y Mappers.
-- **Infrastructure Layer**: Adaptadores tecnológicos de Spring Data JPA, Spring Security 6 JWT, controladores REST OpenAPI 3 y scripts Flyway.
+### Principios y Beneficios Clave de la Arquitectura:
+
+1. **Dominio Inmutable y Puro (`Domain Layer`)**:
+   El núcleo de la aplicación (`com.cambistaonline.engine.domain`, `com.cambistaonline.order.domain`, `com.cambistaonline.auth.domain`) contiene las reglas de negocio puras (POJOs en Java 17), entidades, objetos de valor y las interfaces (**Puertos**). **No importa ni conoce Spring Boot, Hibernate o JPA**.
+2. **Inversión de Dependencias (DIP)**:
+   Las dependencias apuntan siempre hacia el centro (Dominio). La capa de Infraestructura implementa los **Puertos** definidos por el dominio mediante **Adaptadores** (`ExchangeEnginePersistenceAdapter`, `ExchangeOrderController`).
+3. **Mantenibilidad y Prueba Independiente**:
+   Es posible probar el 100% de los casos de uso y la lógica de negocio utilizando mocks en milisegundos mediante JUnit 5 y Mockito, sin necesidad de levantar contenedores de bases de datos o el contexto completo de Spring.
+4. **Validación Mecánica con ArchUnit**:
+   Se incluyen pruebas arquitectónicas automatizadas (`OnionArchitectureTest`, `EngineOnionArchitectureTest`, `OrderOnionArchitectureTest`) que verifican mecánicamente en cada `mvn test` que ninguna clase de Dominio o Aplicación importe paquetes de Infraestructura.
 
 ---
 
-## 🧪 Pruebas Automatizadas y Calidad de Código
+## 🛠️ Tecnologías Aplicadas
 
-### Ejecución de Pruebas en Backend (JUnit 5 + Mockito + ArchUnit)
-Para ejecutar la suite completa de pruebas unitarias y la **validación mecánica de la arquitectura Onion con ArchUnit**:
+### Backend Enterprise (Java 17 + Spring Boot 3)
+- **Java 17 LTS**: Uso extensivo de *Records*, *Sealed Classes*, *Switch Expressions* y programación orientada a objetos inmutable.
+- **Spring Boot 3.3.1**: Framework empresarial para la creación de microservicios y APIs RESTful.
+- **Spring Security 6 + JWT**: Autenticación sin estado (*Stateless*) con tokens firmados encriptados con algoritmo HMAC SHA-256 y contraseñas cifradas mediante BCrypt.
+- **Spring Data JPA & Hibernate**: Persistencia relacional orientada a objetos.
+- **Flyway Database Migrations**: Control de versiones de esquema de base de datos desde `V1` hasta `V7` (`tb_operacion`, `tb_usuario_puntos`, `tb_tasa_base`, `tb_spread_nivel`, `tb_horario`, `tb_estacionalidad`, `tb_puntos_config`, `users`).
+- **ArchUnit 1.3**: Pruebas automatizadas de arquitectura y gobierno de código.
+- **JaCoCo**: Cobertura de código y métricas de calidad de pruebas unitarias.
 
+### Frontend Moderno (React 18 + Vite + Vanilla CSS)
+- **React 18**: Biblioteca de interfaz de usuario basada en componentes reutilizables.
+- **Vite 5**: Compilador y empaquetador ultrarrápido para producción.
+- **Zustand**: Gestión de estado global ligero y persistente (`useAuthStore`, `useFxStore`, `useOrderStore`).
+- **Axios**: Cliente HTTP estandarizado con interceptores automáticos de cabecera JWT Bearer y manejo de errores 401 Unauthorized.
+- **CSS Modules & Variables**: Estilizado moderno sin dependencias pesadas de terceros, con soporte para modo oscuro/claro, sombras de vidrio (*glassmorphism*) y diseño responsivo.
+- **Lucide React**: Biblioteca de iconografía moderna.
+
+### Base de Datos Cloud & Infraestructura
+- **PostgreSQL Serverless en Neon Cloud**: Base de datos PostgreSQL alojada en la nube con soporte SSL activado.
+- **Docker & Docker Compose**: Construcción multi-etapa (*Multi-stage build*) con imágenes livianas (`eclipse-temurin:17-jre-alpine` para backend y `node:20-slim` -> `nginx:alpine` para el frontend).
+
+---
+
+## 🌟 Funcionalidades Completadas del Sistema
+
+1. **Motor Dinámico de Tipo de Cambio**:
+   - Pipeline de reglas: Tasa base SBS, Spread por rol/nivel preferente, Ajuste horario, Ajuste estacional por demanda y Bonificación por puntos.
+2. **Persistencia Real de Órdenes (`TRX-XXXXXX`)**:
+   - Creación y actualización de transacciones en la tabla `tb_operacion` de Neon PostgreSQL.
+3. **Ciclo de Vida de CambiPuntos ⭐**:
+   - Descuento automático de puntos canjeados durante la transacción y acreditación instantánea de **+10 puntos** de recompensa por cada operación realizada.
+4. **Persistencia de Sesión de Usuario**:
+   - Restauración de datos de perfil (`Alex Meza`) y mantenimiento de la sesión activa entre navegación y recargas.
+5. **Navegación Inteligente y Vista "Nosotros"**:
+   - Ocultamiento de la pestaña "Empresas" para Persona Natural logueada.
+   - Nueva pantalla institucional `/nosotros` con acreditación SBS, propuestas de valor y central de soporte y contacto.
+6. **Diseño Responsivo Horizontal**:
+   - Reorganización de la calculadora a un diseño fluido en 2 columnas paralelas para computadoras y tablets (`≥ 768px`) y formato vertical en dispositivos móviles (`< 768px`).
+
+---
+
+## 🚀 Cómo Levantar el Proyecto en Desarrollo
+
+### Requisitos Previos:
+- **Docker Desktop** (Recomendado) o **Java 17 JDK** + **Maven 3.9+** + **Node.js 20+**.
+
+---
+
+### Opción A: Despliegue con Docker Compose (Recomendado)
+
+1. **Clonar el repositorio**:
+   ```bash
+   git clone https://github.com/TU_USUARIO/cambista_online.git
+   cd cambista_online
+   ```
+
+2. **Verificar variables de entorno (`backend/.env`)**:
+   Asegúrate de contar con el archivo `backend/.env` configurado con tus credenciales de Neon PostgreSQL:
+   ```env
+   SPRING_DATASOURCE_URL=jdbc:postgresql://ep-young-tooth-ac5b010f-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require
+   SPRING_DATASOURCE_USERNAME=neondb_owner
+   SPRING_DATASOURCE_PASSWORD=tu_password_de_neon
+   JWT_SECRET=404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+   JWT_EXPIRATION_MS=3600000
+   ```
+
+3. **Compilar y levantar contenedores**:
+   ```bash
+   docker compose up --build -d
+   ```
+
+4. **Acceder a la aplicación**:
+   - 🌐 **Frontend (Web App)**: [http://localhost:3000](http://localhost:3000)
+   - 📑 **Documentación REST (Swagger UI)**: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+
+---
+
+### Opción B: Ejecución Local en Desarrollo (Sin Docker)
+
+#### 1. Levantar el Backend (Java 17 / Spring Boot)
+```bash
+cd backend
+$env:JAVA_HOME="C:\Program Files\Eclipse Adoptium\jdk-17.0.19.10-hotspot"
+mvn spring-boot:run
+```
+
+#### 2. Levantar el Frontend (React / Vite)
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Accede al entorno de desarrollo en [http://localhost:5173](http://localhost:5173).
+
+---
+
+## 🧪 Pruebas Automatizadas
+
+### Ejecutar Pruebas Backend (JUnit 5 + Mockito + ArchUnit)
 ```bash
 cd backend
 mvn test
 ```
 
-### Compilación y Validación del Frontend
-Para verificar la compilación de producción del Frontend:
-
+### Validar Compilación Frontend
 ```bash
 cd frontend
 npm run build
@@ -214,12 +159,8 @@ npm run build
 
 ---
 
-## 📌 Endpoints REST Principales (`/api/v1/auth`)
+## 🔑 Credenciales de Prueba
 
-| Método | Endpoint | Descripción | Requiere Auth |
-| :--- | :--- | :--- | :---: |
-| `POST` | `/api/v1/auth/register` | Registro de Persona Natural ("N") o Jurídica ("J") | ❌ |
-| `POST` | `/api/v1/auth/login` | Autenticación y generación de JWT Access Token | ❌ |
-| `GET` | `/api/v1/auth/me` | Obtiene el perfil del usuario autenticado | ✅ (Bearer JWT) |
-| `GET` | `/rates` | Consulta tipo de cambio en tiempo real | ❌ |
-| `GET` | `/rates/breakdown` | Obtiene desglose de tasa y saldo de CambiPuntos | ✅ (Bearer JWT) |
+- **Usuario**: `alex.meza@smartbricks.cl`
+- **Contraseña**: `Pingp0nist@`
+- **Usuario Demo**: `demo@cambistaonline.pe` / `demo1234`

@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { exchangeService } from '../services/exchangeService';
+
 
 export const useFxStore = create((set, get) => ({
   originCurrency: 'USD',
@@ -30,7 +32,12 @@ export const useFxStore = create((set, get) => ({
 
   fetchUserFxBreakdown: async () => {
     try {
-      const data = await exchangeService.getUserFxBreakdown();
+      const savedUser = localStorage.getItem('cambista_user');
+      let userEmail = null;
+      if (savedUser) {
+        try { userEmail = JSON.parse(savedUser).email; } catch (e) {}
+      }
+      const data = await exchangeService.getUserFxBreakdown(userEmail);
       set({
         userPointsBalance: data.userPointsBalance,
         baseSbsRate: data.baseSbsRate,

@@ -8,22 +8,22 @@ export const exchangeService = {
 
   createOrder: async (orderPayload) => {
     const response = await apiClient.post('/orders', orderPayload);
-    return response.data;
+    return response.data?.data || response.data;
   },
 
   getUserOrders: async () => {
     const response = await apiClient.get('/orders');
-    return response.data;
+    return response.data?.data || response.data;
   },
 
   confirmTransfer: async (orderId, transactionNumber) => {
     const response = await apiClient.post(`/orders/${orderId}/confirm-transfer`, { transactionNumber });
-    return response.data;
+    return response.data?.data || response.data;
   },
 
-  getUserFxBreakdown: async () => {
-    const response = await apiClient.get('/rates/breakdown');
-    return response.data;
+  getUserFxBreakdown: async (email) => {
+    const query = email ? `?email=${encodeURIComponent(email)}` : '';
+    const response = await apiClient.get(`/rates/breakdown${query}`);
+    return response.data?.data || response.data;
   },
 };
-

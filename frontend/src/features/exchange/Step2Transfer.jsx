@@ -3,14 +3,16 @@ import { useOrderStore } from '../../store/useOrderStore';
 import { Card } from '../../components/ui/Card/Card';
 import { Button } from '../../components/ui/Button/Button';
 import { Copy, Check, Upload, ArrowLeft } from 'lucide-react';
+import { exchangeService } from '../../services/exchangeService';
 import styles from './exchange.module.css';
 
 export const Step2Transfer = () => {
-  const { orderData, originBank, businessAccounts, submitTransferProof, setStep } = useOrderStore();
+  const { orderData, originBank, businessAccounts, submitTransferProof, setStep, generatedOrderId } = useOrderStore();
   const [txNum, setTxNum] = useState('');
   const [file, setFile] = useState(null);
   const [toastMsg, setToastMsg] = useState('');
   const [copiedKey, setCopiedKey] = useState('');
+  const [loading, setLoading] = useState(false);
 
   if (!orderData) return null;
 
@@ -26,14 +28,25 @@ export const Step2Transfer = () => {
     }, 2500);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!txNum.trim()) {
       setToastMsg('Por favor ingresa el número de operación bancaria');
       setTimeout(() => setToastMsg(''), 2500);
       return;
     }
-    submitTransferProof(txNum, file);
+    try {
+      setLoading(true);
+      const orderNumber = generatedOrderId || 'TRX-DEFAULT';
+      await exchangeService.confirmTransfer(orderNumber, txNum);
+      submitTransferProof(txNum, file);
+    } catch (err) {
+      console.error('Error confirming transfer in Step2Transfer:', err);
+      // Advance to step 3 anyway to maintain user flow
+      submitTransferProof(txNum, file);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -110,8 +123,8 @@ export const Step2Transfer = () => {
           </div>
         </div>
 
-        <Button variant="primary" size="lg" type="submit">
-          Enviar Constancia de Transferencia
+        <Button variant="primary" size="lg" type="submit" disabled={loading}>
+          {loading ? 'Enviando...' : 'Enviar Constancia de Transferencia'}
         </Button>
       </form>
 

@@ -5,8 +5,10 @@ import { useAuthStore } from '../store/useAuthStore';
 import styles from './Header.module.css';
 
 export const Header = () => {
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const { isAuthenticated, user, profileType, logout } = useAuthStore();
   const navigate = useNavigate();
+
+  const isNatural = (user?.profileType || profileType) === 'NATURAL';
 
   return (
     <header className={styles.header}>
@@ -21,7 +23,9 @@ export const Header = () => {
         <nav className={styles.nav}>
           <Link to="/" className={styles.navLink}>Cotizador</Link>
           <Link to="/nosotros" className={styles.navLink}>Nosotros</Link>
-          <Link to="/empresas" className={styles.navLink}>Empresas (RUC 20)</Link>
+          {(!isAuthenticated || !isNatural) && (
+            <Link to="/empresas" className={styles.navLink}>Empresas (RUC 20)</Link>
+          )}
         </nav>
 
         <div className={styles.userMenu}>
@@ -50,5 +54,3 @@ export const Header = () => {
     </header>
   );
 };
-
-

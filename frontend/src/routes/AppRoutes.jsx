@@ -5,6 +5,7 @@ import { ExchangeFlow } from '../features/exchange/ExchangeFlow';
 import { LoginForm } from '../features/auth/LoginForm';
 import { RegisterForm } from '../features/auth/RegisterForm';
 import { UserDashboard } from '../features/dashboard/UserDashboard';
+import { AboutPage } from '../features/about/AboutPage';
 import { useAuthStore } from '../store/useAuthStore';
 
 const ProtectedRoute = ({ children }) => {
@@ -13,6 +14,8 @@ const ProtectedRoute = ({ children }) => {
 };
 
 export const AppRoutes = () => {
+  const { isAuthenticated } = useAuthStore();
+
   return (
     <Routes>
       <Route
@@ -31,6 +34,8 @@ export const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+      <Route path="/nosotros" element={<AboutPage />} />
+      <Route path="/empresas" element={<Navigate to="/register" replace />} />
       <Route path="/login" element={<LoginForm />} />
       <Route path="/register" element={<RegisterForm />} />
       <Route
@@ -41,8 +46,7 @@ export const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} replace />} />
     </Routes>
   );
 };
-

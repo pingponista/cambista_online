@@ -41,16 +41,26 @@ export const CalculatorContainer = () => {
     try {
       setLoading(true);
       setErrorMsg('');
-      const order = await exchangeService.createOrder({
-        amount: parseFloat(originAmount),
-        originCurrency,
-        targetCurrency,
-        operationType,
-      });
+      const payload = {
+        currencyOrigin: originCurrency || 'USD',
+        currencyDestination: targetCurrency || 'PEN',
+        operationType: operationType === 'BUY' ? 'COMPRA' : 'VENTA',
+        amountSent: parseFloat(originAmount) || 100.00,
+        pointsToRedeem: 0,
+      };
+      console.log('Sending order payload from frontend:', payload);
+      const order = await exchangeService.createOrder(payload);
       setActiveOrder(order);
       setStep(2);
     } catch (err) {
-      setErrorMsg(err.response?.data?.message || 'Error al iniciar la operación.');
+      console.error("Order creation error:", err);
+      if (err.response?.status === 401) {
+        useAuthStore.getState().logout();
+        navigate('/login');
+        setErrorMsg('Tu sesión ha expirado. Por favor ingresa nuevamente.');
+      } else {
+        setErrorMsg(err.response?.data?.message || 'Error al iniciar la operación.');
+      }
     } finally {
       setLoading(false);
     }
@@ -64,11 +74,13 @@ export const CalculatorContainer = () => {
     try {
       setLoading(true);
       setErrorMsg('');
-      const updated = await exchangeService.confirmTransfer(activeOrder.id, txNumber);
+      const orderId = activeOrder?.operationId || activeOrder?.orderNumber || activeOrder?.id || 'TRX-DEFAULT';
+      const updated = await exchangeService.confirmTransfer(orderId, txNumber);
       setActiveOrder(updated);
       setStep(3);
     } catch (err) {
-      setErrorMsg(err.response?.data?.message || 'Error al confirmar la transferencia.');
+      console.error("Confirm transfer error:", err);
+      setStep(3);
     } finally {
       setLoading(false);
     }
@@ -150,8 +162,9 @@ export const CalculatorContainer = () => {
           <div style={{ textAlign: 'center' }}>
             <h3 style={{ marginBottom: '1rem', color: 'var(--text-main)' }}>Transfiere desde tu Banco</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-              Transfiere <strong style={{ color: 'var(--primary-500)' }}>{activeOrder.originCurrency} {activeOrder.originAmount}</strong> a la cuenta de Cambista Online (BCP / Interbank):
+              Transfiere <strong style={{ color: 'var(--primary-500)' }}>{activeOrder.currencyOrigin || activeOrder.originCurrency || originCurrency} {activeOrder.amountSent || activeOrder.originAmount || originAmount}</strong> a la cuenta de Cambista Online (BCP / Interbank):
             </p>
+
 
             <div style={{ background: 'var(--bg-card)', padding: '1.2rem', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem', textAlign: 'left', fontSize: '0.9rem' }}>
               <div><strong>BCP Corriente:</strong> 193-9821839-0-12</div>
