@@ -1,5 +1,6 @@
 package com.cambistaonline.auth.infrastructure.persistence;
 
+import com.cambistaonline.auth.application.ports.outbound.UserPersistencePort;
 import com.cambistaonline.auth.domain.model.User;
 import com.cambistaonline.auth.domain.model.UserStatus;
 import com.cambistaonline.auth.domain.ports.UserRepositoryPort;
@@ -13,7 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Component
-public class UserRepositoryAdapter implements UserRepositoryPort {
+public class UserRepositoryAdapter implements UserRepositoryPort, UserPersistencePort {
 
     private final SpringDataUserRepository repository;
 

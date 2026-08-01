@@ -1,11 +1,14 @@
 package com.cambistaonline.auth.infrastructure.config;
 
-import com.cambistaonline.auth.application.usecases.AuthenticateUserUseCase;
-import com.cambistaonline.auth.application.usecases.GetCurrentUserUseCase;
-import com.cambistaonline.auth.application.usecases.RegisterUserUseCase;
-import com.cambistaonline.auth.domain.ports.JwtTokenPort;
-import com.cambistaonline.auth.domain.ports.PasswordEncoderPort;
-import com.cambistaonline.auth.domain.ports.UserRepositoryPort;
+import com.cambistaonline.auth.application.ports.inbound.AuthenticateUserUseCase;
+import com.cambistaonline.auth.application.ports.inbound.GetCurrentUserUseCase;
+import com.cambistaonline.auth.application.ports.inbound.RegisterUserUseCase;
+import com.cambistaonline.auth.application.ports.outbound.JwtTokenPort;
+import com.cambistaonline.auth.application.ports.outbound.PasswordEncoderPort;
+import com.cambistaonline.auth.application.ports.outbound.UserPersistencePort;
+import com.cambistaonline.auth.application.service.AuthenticateUserService;
+import com.cambistaonline.auth.application.service.GetCurrentUserService;
+import com.cambistaonline.auth.application.service.RegisterUserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,25 +17,25 @@ public class BeanConfig {
 
     @Bean
     public RegisterUserUseCase registerUserUseCase(
-            UserRepositoryPort userRepositoryPort,
+            UserPersistencePort userPersistencePort,
             PasswordEncoderPort passwordEncoderPort
     ) {
-        return new RegisterUserUseCase(userRepositoryPort, passwordEncoderPort);
+        return new RegisterUserService(userPersistencePort, passwordEncoderPort);
     }
 
     @Bean
     public AuthenticateUserUseCase authenticateUserUseCase(
-            UserRepositoryPort userRepositoryPort,
+            UserPersistencePort userPersistencePort,
             PasswordEncoderPort passwordEncoderPort,
             JwtTokenPort jwtTokenPort
     ) {
-        return new AuthenticateUserUseCase(userRepositoryPort, passwordEncoderPort, jwtTokenPort);
+        return new AuthenticateUserService(userPersistencePort, passwordEncoderPort, jwtTokenPort);
     }
 
     @Bean
     public GetCurrentUserUseCase getCurrentUserUseCase(
-            UserRepositoryPort userRepositoryPort
+            UserPersistencePort userPersistencePort
     ) {
-        return new GetCurrentUserUseCase(userRepositoryPort);
+        return new GetCurrentUserService(userPersistencePort);
     }
 }

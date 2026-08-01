@@ -1,6 +1,7 @@
 package com.cambistaonline.engine.infrastructure.config;
 
-import com.cambistaonline.engine.application.usecases.CalculateExchangeRateUseCase;
+import com.cambistaonline.engine.application.ports.inbound.CalculateExchangeRateUseCase;
+import com.cambistaonline.engine.application.service.CalculateExchangeRateService;
 import com.cambistaonline.engine.domain.ports.ExchangeRateRepositoryPort;
 import com.cambistaonline.engine.domain.ports.ExchangeRuleRepositoryPort;
 import com.cambistaonline.engine.domain.ports.UserPointsRepositoryPort;
@@ -60,6 +61,6 @@ public class EngineBeanConfig {
     @Bean
     public CalculateExchangeRateUseCase calculateExchangeRateUseCase(
             ExchangeRateCalculationPipeline exchangeRateCalculationPipeline) {
-        return new CalculateExchangeRateUseCase(exchangeRateCalculationPipeline);
+        return new CalculateExchangeRateService(exchangeRateCalculationPipeline);
     }
 }

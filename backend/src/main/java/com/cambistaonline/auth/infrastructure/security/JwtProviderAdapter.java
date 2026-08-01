@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-public class JwtProviderAdapter implements JwtTokenPort {
+public class JwtProviderAdapter implements JwtTokenPort, com.cambistaonline.auth.application.ports.outbound.JwtTokenPort {
 
     private final SecretKey key;
     private final long expirationMs;

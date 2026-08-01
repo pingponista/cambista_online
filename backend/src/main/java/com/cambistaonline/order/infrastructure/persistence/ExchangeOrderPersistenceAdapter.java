@@ -2,6 +2,7 @@ package com.cambistaonline.order.infrastructure.persistence;
 
 import com.cambistaonline.engine.domain.model.CurrencyType;
 import com.cambistaonline.engine.domain.model.OperationType;
+import com.cambistaonline.order.application.ports.outbound.ExchangeOrderPersistencePort;
 import com.cambistaonline.order.domain.model.ExchangeOrder;
 import com.cambistaonline.order.domain.model.OrderStatus;
 import com.cambistaonline.order.domain.ports.ExchangeOrderRepositoryPort;
@@ -12,7 +13,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
-public class ExchangeOrderPersistenceAdapter implements ExchangeOrderRepositoryPort {
+public class ExchangeOrderPersistenceAdapter implements ExchangeOrderRepositoryPort, ExchangeOrderPersistencePort {
 
     private final SpringDataJpaOrderRepository orderRepository;
 

@@ -1,4 +1,4 @@
-# 💱 CambistaOnline - Plataforma Fintech de Cambio de Divisas
+# 💱 CambistaOnline - Plataforma Fintech de Cambio de Divisas (Arquitectura Hexagonal)
 
 [![Java 17](https://img.shields.io/badge/Java-17-orange.svg)](https://adoptium.net/)
 [![Spring Boot 3.3.1](https://img.shields.io/badge/Spring%20Boot-3.3.1-brightgreen.svg)](https://spring.io/projects/spring-boot)
@@ -6,78 +6,127 @@
 [![Vite 5](https://img.shields.io/badge/Vite-5-purple.svg)](https://vitejs.dev/)
 [![PostgreSQL Neon](https://img.shields.io/badge/PostgreSQL-Neon.tech-blue.svg)](https://neon.tech/)
 [![Docker Compose](https://img.shields.io/badge/Docker-Compose-blue.svg)](https://www.docker.com/)
-[![Architecture](https://img.shields.io/badge/Architecture-Onion%20%2F%20Hexagonal-darkgreen.svg)]()
+[![Architecture](https://img.shields.io/badge/Architecture-Hexagonal%20%2F%20Ports%20%26%20Adapters-darkgreen.svg)]()
 
-**CambistaOnline** es una plataforma web financiera de grado empresarial diseñada para la cotización e intercambio de divisas en tiempo real entre **Dólares (USD)**, **Euros (EUR)** y **Soles (PEN)**. Ofrece soporte integral para **Persona Natural** (DNI/CE) y **Persona Jurídica** (RUC 10/20, Razón Social y Representante Legal), respaldada por una arquitectura robusta, escalable y mantenible basada en **Onion Architecture** (Arquitectura Cebolla).
+**CambistaOnline** es una plataforma web financiera de grado empresarial diseñada para la cotización e intercambio de divisas en tiempo real entre **Dólares (USD)**, **Euros (EUR)** y **Soles (PEN)**. Soporta **Persona Natural** (DNI/CE) y **Persona Jurídica** (RUC 10/20, Razón Social y Representante Legal), desarrollada bajo **Arquitectura Hexagonal (Puertos y Adaptadores / Ports & Adapters Architecture)**.
 
 ---
 
-## 🏛️ Descripción Detallada de la Arquitectura ONION (Arquitectura Cebolla)
+## 🏛️ Transformación e Implementación de la Arquitectura Hexagonal (Ports & Adapters)
 
-En plataformas bancarias y fintech de alto volumen, la lógica de negocio y las reglas del motor de tipo de cambio deben **permanecer completamente aisladas de detalles de infraestructura** como frameworks web, librerías ORM o proveedores de base de datos.
+Para elevar la mantenibilidad, desacoplamiento y testabilidad a estándares bancarios internacionales, la aplicación fue transformada a **Arquitectura Hexagonal pura** (definida por Alistair Cockburn).
+
+En esta arquitectura, la lógica de negocio y las reglas del dominio habitan dentro de un **Hexágono Aislado** que interactúa con el mundo exterior únicamente a través de **Puertos** (Contratos/Interfaces) y **Adaptadores** (Implementaciones tecnológicas).
 
 ```text
-               +---------------------------------------------------+
-               |               Infrastructure Layer                |
-               |  (Spring Security, JPA, PostgreSQL, REST, Flyway) |
-               |   +-------------------------------------------+   |
-               |   |            Application Layer              |   |
-               |   |   (Use Cases, Commands, DTOs, Mappers)    |   |
-               |   |   +-----------------------------------+   |   |
-               |   |   |           Domain Layer            |   |   |
-               |   |   |  (Entities, Value Objects,        |   |   |
-               |   |   |   Domain Services, Ports)         |   |   |
-               |   |   +-----------------------------------+   |   |
-               |   +-------------------------------------------+   |
-               +---------------------------------------------------+
+               +-------------------------------------------------------------------+
+               |                       DRIVING ADAPTERS                            |
+               |  (REST Controllers: AuthController, ExchangeEngineController)    |
+               |   +-----------------------------------------------------------+   |
+               |   |                  INBOUND / PRIMARY PORTS                  |   |
+               |   |   (Interfaces: RegisterUserUseCase, CalculateRateUseCase) |   |
+               |   |   +---------------------------------------------------+   |   |
+               |   |   |                   CORE DOMAIN                     |   |   |
+               |   |   |   (Entities, Value Objects, Domain Services)      |   |   |
+               |   |   +---------------------------------------------------+   |   |
+               |   |                  OUTBOUND / SECONDARY PORTS               |   |
+               |   |   (Interfaces: UserPersistencePort, OrderPersistence)  |   |
+               |   +-----------------------------------------------------------+   |
+               |                       DRIVEN ADAPTERS                             |
+               |  (JPA Adapters, Neon PostgreSQL, Spring Security JWT, Flyway)     |
+               +-------------------------------------------------------------------+
 ```
-
-### 1. Capa de Dominio (`Domain Layer`)
-Es el corazón de la aplicación. Contiene objetos POJO puros en Java 17 sin dependencias de Spring Boot, Hibernate o JPA.
-
-- **Entidades de Dominio**: `User`, `ExchangeOrder`, `OrderStatus`, `OperationType`, `CurrencyType`, `CustomerLevel`, `CalculationContext`.
-- **Objetos de Valor (Value Objects)**: `Email`, `Password`, `Dni`, `Ruc`.
-- **Puertos de Dominio (Domain Ports / Interfaces)**:
-  - `UserRepositoryPort`: Contrato para la búsqueda y guardado de usuarios.
-  - `ExchangeOrderRepositoryPort`: Contrato para la creación y consulta de órdenes de cambio `TRX-XXXXXX`.
-  - `ExchangeRateRepositoryPort`: Contrato para obtener la tasa base SBS.
-  - `ExchangeRuleRepositoryPort`: Contrato para reglas de spread, horario y estacionalidad.
-  - `UserPointsRepositoryPort`: Contrato para consulta y actualización del saldo de **CambiPuntos**.
-
-### 2. Capa de Aplicación (`Application Layer`)
-Orquesta el flujo de datos hacia y desde las entidades de dominio y ejecuta los casos de uso del negocio.
-
-- **Casos de Uso (Use Cases)**:
-  - `RegisterUserUseCase`: Registro validado de Persona Natural ("N") y Persona Jurídica ("J").
-  - `AuthenticateUserUseCase`: Autenticación de credenciales y generación del token JWT.
-  - `CalculateExchangeRateUseCase`: Ejecución del pipeline dinámico de cálculo de tipo de cambio.
-  - `CreateExchangeOrderUseCase`: Creación de la orden de cambio, expiración a 15 minutos y gestión del saldo de puntos.
-  - `GetMyOrdersUseCase`: Consulta del historial de operaciones del usuario autenticado.
-  - `ConfirmTransferUseCase`: Confirmación de transferencia bancaria y actualización a estado `PAYMENT_UPLOADED`.
-- **Estrategias y Pipeline de Cálculo (`Strategy Pattern`)**:
-  - `ExchangeRateCalculationPipeline`: Orquestador de pasos.
-  - `BaseRateStep`, `SpreadStep`, `HourlyRuleStep`, `SeasonalRuleStep`, `PointsRedemptionStep`.
-- **Objetos de Transferencia de Datos (DTOs)**:
-  - `CalculateRateRequest`, `CalculateRateResponse`, `CreateOrderRequest`, `CreateOrderResponse`, `FxBreakdownResponse`, `OrderSummaryDto`.
-
-### 3. Capa de Infraestructura (`Infrastructure Layer`)
-Contiene los adaptadores tecnológicos de entrada (REST Controllers) y salida (JPA Repositories, Spring Security).
-
-- **Adaptadores REST de Entrada (REST Controllers & OpenAPI 3)**:
-  - `AuthController` (`/api/v1/auth`): Endpoints de autenticación y perfil.
-  - `ExchangeEngineController` (`/api/v1/exchange`, `/api/v1/rates`): Endpoints de cálculo dinámico y desglose.
-  - `ExchangeOrderController` (`/api/v1/orders`): Endpoints de gestión de transacciones.
-- **Adaptadores de Persistencia de Salida (JPA Adapters & Neon DB)**:
-  - `JpaUserRepositoryAdapter`, `ExchangeEnginePersistenceAdapter`, `JpaExchangeOrderRepositoryAdapter`.
-  - Repositorios Spring Data JPA (`SpringDataJpaUserRepository`, `SpringDataJpaOrderRepository`, etc.).
-- **Seguridad e Identidad**:
-  - `SecurityConfig`, `JwtAuthenticationFilter`, `JwtTokenProvider`, `CustomUserDetailsService` con cifrado BCrypt.
-- **Migraciones de Base de Datos Flyway**:
-  - Scripts SQL versionados desde `V1` hasta `V7` (`tb_operacion`, `tb_usuario_puntos`, `tb_tasa_base`, `tb_spread_nivel`, `tb_horario`, `tb_estacionalidad`, `tb_puntos_config`, `users`).
 
 ---
 
-## 📌 Catálogo de Endpoints REST Creados
+## 🔍 Detalle de Cambios Realizados por Capas y Bounded Contexts
+
+### 1. Puertos de Entrada / Primarios (`application.ports.inbound`)
+Definen los contratos abstractos de los **Casos de Uso** consumidos por los Adaptadores de Entrada (Controladores REST).
+
+- **Módulo `auth`**:
+  - `RegisterUserUseCase`: Interfaz del caso de uso de registro.
+  - `AuthenticateUserUseCase`: Interfaz para autenticación de credenciales y emisión de JWT.
+  - `GetCurrentUserUseCase`: Interfaz para la obtención del perfil autenticado.
+- **Módulo `engine`**:
+  - `CalculateExchangeRateUseCase`: Interfaz para la cotización dinámica de tipos de cambio.
+- **Módulo `order`**:
+  - `CreateExchangeOrderUseCase`: Interfaz para generación de órdenes `TRX-XXXXXX`.
+  - `GetMyOrdersUseCase`: Interfaz para consulta del historial de operaciones.
+  - `ConfirmTransferUseCase`: Interfaz para confirmación de transferencia y cambio de estado a `COMPLETED`.
+
+---
+
+### 2. Servicios de Aplicación (`application.service`)
+Implementan formalmente las interfaces de los Puertos Primarios y orquestan las entidades del dominio sin depender de ningún framework web o de persistencia.
+
+- **`RegisterUserService`**: Orquesta la creación de `User`, validación de correo único y cifrado de clave.
+- **`AuthenticateUserService`**: Valida credenciales contra `UserPersistencePort` y genera tokens con `JwtTokenPort`.
+- **`GetCurrentUserService`**: Recupera el dominio `User` y mapea hacia DTO de respuesta.
+- **`CalculateExchangeRateService`**: Ejecuta el pipeline de estrategias de cálculo dinámico (SBS, spreads, horario, estacionalidad y puntos).
+- **`CreateExchangeOrderService`**: Genera número de transacción, calcula fecha de expiración a 15 min y gestiona abono/canje de CambiPuntos.
+- **`GetMyOrdersService`**: Retorna el historial de transacciones en formato `OrderSummaryDto`.
+- **`ConfirmTransferService`**: Marca la orden como `COMPLETED` tras la transferencia.
+
+---
+
+### 3. Puertos de Salida / Secundarios (`application.ports.outbound`)
+Definen los contratos de salida que requiere el núcleo para interactuar con infraestructura (Bases de datos, servicios de clave, JWT).
+
+- **`UserPersistencePort`**: Puerto para operaciones de persistencia de usuarios.
+- **`ExchangeOrderPersistencePort`**: Puerto para guardado y búsqueda de órdenes de cambio.
+- **`ExchangeRatePersistencePort`**: Puerto para obtención de tasas de cambio base.
+- **`ExchangeRulePersistencePort`**: Puerto para recuperación de reglas comerciales.
+- **`UserPointsPersistencePort`**: Puerto para la gestión de saldo de CambiPuntos.
+- **`PasswordEncoderPort`**: Puerto abstracto para algoritmos de hashing.
+- **`JwtTokenPort`**: Puerto abstracto para generación y validación de tokens JWT.
+
+---
+
+### 4. Adaptadores de Entrada / Primarios (`adapters.inbound.rest`)
+Invocan a los Puertos de Entrada para procesar las peticiones HTTP externas.
+
+- **`AuthController`** (`/api/v1/auth`): Maneja peticiones `/register`, `/login` y `/me`.
+- **`ExchangeEngineController`** (`/api/v1/exchange`, `/api/v1/rates`): Expone `/calculate` y `/breakdown`.
+- **`ExchangeOrderController`** (`/api/v1/orders`): Expone endpoints de creación, listado y confirmación de transferencias.
+
+---
+
+### 5. Adaptadores de Salida / Secundarios (`adapters.outbound`)
+Implementan los Puertos de Salida para conectarse con la infraestructura real.
+
+- **`UserRepositoryAdapter`** & **`SpringDataUserRepository`**: Adaptadores JPA para `users` en Neon DB.
+- **`ExchangeOrderPersistenceAdapter`** & **`SpringDataJpaOrderRepository`**: Adaptadores JPA para `tb_operacion`.
+- **`ExchangeEnginePersistenceAdapter`**: Adaptador para reglas comerciales y `tb_usuario_puntos`.
+- **`BcryptPasswordEncoderAdapter`**: Adaptador que encapsula BCrypt de Spring Security.
+- **`JwtProviderAdapter`**: Adaptador que implementa la firma y lectura de tokens JWT HMAC-SHA256.
+
+---
+
+### 6. Gobierno y Reglas Arquitectónicas Auditeadas (`ArchUnit 1.3`)
+Se implementó la suite **`HexagonalArchitectureTest.java`** que verifica automáticamente en cada compilación `mvn test`:
+
+```java
+@Test
+void domainModelAndStrategyShouldNotDependOnOuterInfrastructureOrFrameworks() {
+    noClasses()
+        .that().resideInAPackage("..domain..")
+        .should().dependOnClassesThat()
+        .resideInAnyPackage("..infrastructure..", "..adapters..", "org.springframework..");
+}
+
+@Test
+void applicationServicesAndPortsShouldNotDependOnInfrastructureAdapters() {
+    noClasses()
+        .that().resideInAPackage("..application..")
+        .should().dependOnClassesThat()
+        .resideInAnyPackage("..infrastructure..", "..adapters..");
+}
+```
+
+---
+
+## 📌 Catálogo de Endpoints REST
 
 ### 🔐 1. Módulo de Autenticación (`/api/v1/auth`)
 
@@ -100,29 +149,24 @@ Contiene los adaptadores tecnológicos de entrada (REST Controllers) y salida (J
 | :--- | :--- | :--- | :---: |
 | `POST` | `/api/v1/orders` | Crea una nueva orden de cambio (`TRX-XXXXXX`), congela la tasa por 15 min y gestiona puntos | ✅ |
 | `GET` | `/api/v1/orders` | Consulta el historial completo de transacciones realizadas por el usuario | ✅ |
-| `POST` | `/api/v1/orders/{orderNumber}/confirm-transfer` | Registra el número de operación bancaria y adjunta la constancia de pago | ✅ |
+| `POST` | `/api/v1/orders/{orderNumber}/confirm-transfer` | Marca la orden como completada (`COMPLETED`) e ingresa la operación | ✅ |
 
 ---
 
 ## 🛠️ Tecnologías Aplicadas
 
 ### Backend Enterprise (Java 17 + Spring Boot 3)
-- **Java 17 LTS**: Uso de *Records*, *Sealed Classes*, *Switch Expressions* y programación orientada a objetos inmutable.
-- **Spring Boot 3.3.1**: Framework empresarial para microservicios RESTful.
-- **Spring Security 6 + JWT**: Autenticación sin estado (*Stateless*) con tokens firmados HMAC SHA-256 y contraseñas cifradas con BCrypt.
-- **Spring Data JPA & Hibernate**: Persistencia relacional orientada a objetos.
-- **Flyway Database Migrations**: Control de versiones de base de datos desde `V1` a `V7`.
-- **ArchUnit 1.3**: Validación de arquitectura Onion en cada compilación.
+- **Java 17 LTS**: Programación orientada a objetos inmutable.
+- **Spring Boot 3.3.1**: Framework empresarial RESTful.
+- **Spring Security 6 + JWT**: Autenticación sin estado (*Stateless*).
+- **Spring Data JPA & Hibernate**: Persistencia relacional.
+- **Flyway Database Migrations**: Control de versiones de BD (V1 a V7).
+- **ArchUnit 1.3**: Auditoría automatizada de Arquitectura Hexagonal.
 
 ### Frontend Moderno (React 18 + Vite + Vanilla CSS)
-- **React 18 & Vite 5**: UI interactiva con compilador de producción ultrarrápido.
+- **React 18 & Vite 5**: UI responsiva con compilación de producción optimizada.
 - **Zustand**: Gestión de estado global persistente (`useAuthStore`, `useFxStore`, `useOrderStore`).
-- **Axios**: Cliente HTTP estandarizado con interceptores automáticos Bearer Token.
-- **CSS Modules & Variables**: Estilizado limpio con soporte para diseño responsivo horizontal y modo oscuro/claro.
-
-### Base de Datos & Infraestructura
-- **PostgreSQL Serverless en Neon Cloud**: Base de datos en la nube con soporte SSL activado.
-- **Docker & Docker Compose**: Orquestación de contenedores multi-etapa (`eclipse-temurin:17-jre-alpine` + `nginx:alpine`).
+- **Axios**: Interceptores automáticos Bearer Token.
 
 ---
 
@@ -135,8 +179,6 @@ cd cambista_online
 ```
 
 ### Paso 2: Configurar las Variables de Entorno (`backend/.env`)
-Crea o edita el archivo `backend/.env` con tus credenciales de Neon PostgreSQL:
-
 ```env
 SPRING_DATASOURCE_URL=jdbc:postgresql://ep-young-tooth-ac5b010f-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require
 SPRING_DATASOURCE_USERNAME=tu_usuario_neondb
@@ -147,42 +189,21 @@ JWT_EXPIRATION_MS=3600000
 
 ---
 
-### Paso 3: Levantar los Contenedores con Docker Compose (Recomendado)
-
-Desde la raíz del repositorio, ejecuta:
-
+### Paso 3: Levantar los Contenedores con Docker Compose
 ```bash
 docker compose up --build -d
 ```
 
-> ℹ️ **Migración Automática**: Al iniciar el contenedor Backend, **Flyway** creará automáticamente las tablas e insertará los datos semilla (`V1` a `V7`).
-
 #### 🌐 URLs de Acceso:
-- **Aplicación Web Frontend (React + Nginx)**: 👉 **`http://localhost:3000`**
+- **Aplicación Web Frontend**: 👉 **`http://localhost:3000`**
 - **Documentación REST Backend (Swagger UI)**: 👉 **`http://localhost:8080/swagger-ui.html`**
-
----
-
-## 🔑 Credenciales Demo para Pruebas Rápidas
-
-Para ingresar rápidamente al Cotizador y Flujo de Cambio sin registrar una cuenta manualmente:
-
-- **Correo electrónico**: `demo@cambistaonline.pe`
-- **Contraseña**: `demo1234`
-- *(En la pantalla de Login encontrarás el botón de 1-clic: `⚡ Ingresar directamente con Demo`)*.
 
 ---
 
 ## 🧪 Pruebas Automatizadas
 
-### Pruebas de Backend y Arquitectura Onion (ArchUnit + JUnit 5)
+### Pruebas de Backend y Arquitectura Hexagonal (ArchUnit + JUnit 5)
 ```bash
 cd backend
 mvn test
-```
-
-### Validación del Frontend
-```bash
-cd frontend
-npm run build
 ```
