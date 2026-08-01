@@ -1,9 +1,9 @@
 package com.cambistaonline.order.infrastructure.rest;
 
 import com.cambistaonline.order.application.dto.*;
-import com.cambistaonline.order.application.usecases.ConfirmTransferUseCase;
-import com.cambistaonline.order.application.usecases.CreateExchangeOrderUseCase;
-import com.cambistaonline.order.application.usecases.GetMyOrdersUseCase;
+import com.cambistaonline.order.application.ports.inbound.ConfirmTransferUseCase;
+import com.cambistaonline.order.application.ports.inbound.CreateExchangeOrderUseCase;
+import com.cambistaonline.order.application.ports.inbound.GetMyOrdersUseCase;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

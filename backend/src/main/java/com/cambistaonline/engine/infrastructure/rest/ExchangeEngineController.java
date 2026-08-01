@@ -3,7 +3,7 @@ package com.cambistaonline.engine.infrastructure.rest;
 import com.cambistaonline.engine.application.dto.CalculateRateRequest;
 import com.cambistaonline.engine.application.dto.CalculateRateResponse;
 import com.cambistaonline.engine.application.dto.FxBreakdownResponse;
-import com.cambistaonline.engine.application.usecases.CalculateExchangeRateUseCase;
+import com.cambistaonline.engine.application.ports.inbound.CalculateExchangeRateUseCase;
 import com.cambistaonline.engine.domain.model.CurrencyType;
 import com.cambistaonline.engine.domain.model.CustomerLevel;
 import com.cambistaonline.engine.domain.model.OperationType;

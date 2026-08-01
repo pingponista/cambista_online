@@ -5,7 +5,6 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useFxStore } from '../../store/useFxStore';
 import styles from './auth.module.css';
 
-
 export const RegisterForm = () => {
   const [profileType, setProfileType] = useState('NATURAL');
   const [formData, setFormData] = useState({
@@ -32,24 +31,23 @@ export const RegisterForm = () => {
     try {
       setLoading(true);
       setError('');
-      const rol = profileType === 'NATURAL' ? 'N' : 'J';
+      const role = profileType === 'NATURAL' ? 'N' : 'J';
       const payload = {
         ...formData,
         profileType,
-        rol,
+        role,
+        rol: role,
       };
       const data = await authService.register(payload);
       setAuth(data);
       useFxStore.getState().fetchUserFxBreakdown();
       navigate('/dashboard');
     } catch (err) {
-
       setError(err.response?.data?.message || 'Error al registrar la cuenta');
     } finally {
       setLoading(false);
     }
   };
-
 
   return (
     <div className={`glass-panel ${styles.authCard}`}>

@@ -10,6 +10,7 @@ import com.cambistaonline.auth.domain.valueobjects.Password;
 import com.cambistaonline.auth.domain.valueobjects.Ruc;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -45,8 +46,11 @@ public class UserRepositoryAdapter implements UserRepositoryPort, UserPersistenc
     }
 
     private UserJpaEntity toEntity(User domain) {
+        LocalDateTime createdAt = domain.getCreatedAt() != null ? domain.getCreatedAt() : LocalDateTime.now();
+        LocalDateTime updatedAt = domain.getUpdatedAt() != null ? domain.getUpdatedAt() : LocalDateTime.now();
+
         return new UserJpaEntity(
-                domain.getId(),
+                domain.getId() != null ? domain.getId() : UUID.randomUUID(),
                 domain.getEmail() != null ? domain.getEmail().getValue() : null,
                 domain.getPassword() != null ? domain.getPassword().getValue() : null,
                 domain.getFirstName(),
@@ -55,10 +59,10 @@ public class UserRepositoryAdapter implements UserRepositoryPort, UserPersistenc
                 domain.getCompanyName(),
                 domain.getRuc() != null ? domain.getRuc().getValue() : null,
                 domain.getLegalRepresentativeName(),
-                domain.getRole(),
+                domain.getRole() != null ? domain.getRole() : "N",
                 domain.getStatus() != null ? domain.getStatus().name() : UserStatus.ACTIVE.name(),
-                domain.getCreatedAt(),
-                domain.getUpdatedAt()
+                createdAt,
+                updatedAt
         );
     }
 

@@ -14,6 +14,7 @@ import com.cambistaonline.auth.domain.valueobjects.Email;
 import com.cambistaonline.auth.domain.valueobjects.Password;
 import com.cambistaonline.auth.domain.valueobjects.Ruc;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class RegisterUserService implements RegisterUserUseCase {
@@ -38,10 +39,11 @@ public class RegisterUserService implements RegisterUserUseCase {
         String encodedHash = passwordEncoderPort.encode(rawPassword.getValue());
         Password hashedPassword = Password.fromHash(encodedHash);
 
-        Dni dni = command.getDni() != null ? new Dni(command.getDni()) : null;
-        Ruc ruc = command.getRuc() != null ? new Ruc(command.getRuc()) : null;
+        Dni dni = command.getDni() != null && !command.getDni().isBlank() ? new Dni(command.getDni()) : null;
+        Ruc ruc = command.getRuc() != null && !command.getRuc().isBlank() ? new Ruc(command.getRuc()) : null;
 
         String role = command.getRole() != null ? command.getRole() : "N";
+        LocalDateTime now = LocalDateTime.now();
 
         User newUser = User.builder()
                 .id(UUID.randomUUID())
@@ -55,6 +57,8 @@ public class RegisterUserService implements RegisterUserUseCase {
                 .legalRepresentativeName(command.getLegalRepresentativeName())
                 .role(role)
                 .status(UserStatus.ACTIVE)
+                .createdAt(now)
+                .updatedAt(now)
                 .build();
 
         User savedUser = userPersistencePort.save(newUser);
