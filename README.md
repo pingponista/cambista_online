@@ -103,6 +103,17 @@ Implementan los Puertos de Salida para conectarse con la infraestructura real.
 
 ---
 
+### 🛡️ Resiliencia y Mapeo en el Registro de Usuarios (`auth`)
+A diferencia de la implementación previa, en el refactor Hexagonal se aplicaron mejoras de resiliencia en la capa de **Aplicación** y **Adaptadores**:
+
+1. **Garantía de Marcas de Tiempo Non-Null (`createdAt` / `updatedAt`)**:
+   - `RegisterUserService` y `UserRepositoryAdapter` aseguran la inicialización explícita de `createdAt` y `updatedAt` con `LocalDateTime.now()`, evitando excepciones de restricción de base de datos (`NOT NULL`) en Neon PostgreSQL.
+2. **Sanitización de Identificadores y Alineación DTO**:
+   - Sanitización de valores vacíos para `dni` y `ruc` al construir Value Objects en el dominio.
+   - Normalización de propiedades `role` y `rol` en el payload JSON entre el frontend React y `AuthController`.
+
+---
+
 ### 6. Gobierno y Reglas Arquitectónicas Auditeadas (`ArchUnit 1.3`)
 Se implementó la suite **`HexagonalArchitectureTest.java`** que verifica automáticamente en cada compilación `mvn test`:
 
