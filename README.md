@@ -93,11 +93,12 @@ Invocan a los Puertos de Entrada para procesar las peticiones HTTP externas.
 ---
 
 ### 5. Adaptadores de Salida / Secundarios (`adapters.outbound`)
-Implementan los Puertos de Salida para conectarse con la infraestructura real.
+Implementan los Puertos de Salida secundarias para conectarse con la infraestructura real de persistencia (**MongoDB NoSQL** y **JPA / PostgreSQL**).
 
-- **`UserRepositoryAdapter`** & **`SpringDataUserRepository`**: Adaptadores JPA para `users` en Neon DB.
-- **`ExchangeOrderPersistenceAdapter`** & **`SpringDataJpaOrderRepository`**: Adaptadores JPA para `tb_operacion`.
-- **`ExchangeEnginePersistenceAdapter`**: Adaptador para reglas comerciales y `tb_usuario_puntos`.
+- **`MongoUserPersistenceAdapter`** & **`SpringDataMongoUserRepository`**: Adaptador NoSQL para la colección `users` en MongoDB Atlas / Local.
+- **`MongoOrderPersistenceAdapter`** & **`SpringDataMongoOrderRepository`**: Adaptador NoSQL para la colección `operacion` en MongoDB.
+- **`MongoEnginePersistenceAdapter`** & **`SpringDataMongoUserPointsRepository`**: Adaptador NoSQL para la colección `usuarios_puntos` y reglas comerciales.
+- **`UserRepositoryAdapter`** & **`ExchangeOrderPersistenceAdapter`**: Adaptadores relacionales JPA (compatibilidad relacional).
 - **`BcryptPasswordEncoderAdapter`**: Adaptador que encapsula BCrypt de Spring Security.
 - **`JwtProviderAdapter`**: Adaptador que implementa la firma y lectura de tokens JWT HMAC-SHA256.
 
