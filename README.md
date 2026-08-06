@@ -153,7 +153,7 @@ Toda la aplicación (Backend Java Spring Boot + Frontend React Nginx) se desplie
 Edita o crea el archivo **`backend/.env`** con tu URI de MongoDB Atlas y tu clave secreta JWT:
 
 ```env
-SPRING_DATA_MONGODB_URI=mongodb+srv://admin:admin@cambistaonilne.vgbiyuj.mongodb.net/sample_mflix?retryWrites=true&w=majority&appName=cambistaOnilne
+SPRING_DATA_MONGODB_URI=mongodb+srv://username:password@cambistaonilne.vgbiyuj.mongodb.net/sample_mflix?retryWrites=true&w=majority&appName=cambistaOnilne
 SPRING_DATASOURCE_URL=jdbc:postgresql://ep-young-tooth-ac5b010f-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require
 SPRING_DATASOURCE_USERNAME=neondb_owner
 SPRING_DATASOURCE_PASSWORD=npg_9vFz6gRJaCHP
