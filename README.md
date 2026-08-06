@@ -4,17 +4,17 @@
 [![Spring Boot 3.3.1](https://img.shields.io/badge/Spring%20Boot-3.3.1-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![React 18](https://img.shields.io/badge/React-18-blue.svg)](https://react.dev/)
 [![Vite 5](https://img.shields.io/badge/Vite-5-purple.svg)](https://vitejs.dev/)
-[![PostgreSQL Neon](https://img.shields.io/badge/PostgreSQL-Neon.tech-blue.svg)](https://neon.tech/)
+[![MongoDB Atlas](https://img.shields.io/badge/MongoDB-Atlas%20NoSQL-green.svg)](https://www.mongodb.com/cloud/atlas)
 [![Docker Compose](https://img.shields.io/badge/Docker-Compose-blue.svg)](https://www.docker.com/)
 [![Architecture](https://img.shields.io/badge/Architecture-Hexagonal%20%2F%20Ports%20%26%20Adapters-darkgreen.svg)]()
 
-**CambistaOnline** es una plataforma web financiera de grado empresarial diseñada para la cotización e intercambio de divisas en tiempo real entre **Dólares (USD)**, **Euros (EUR)** y **Soles (PEN)**. Soporta **Persona Natural** (DNI/CE) y **Persona Jurídica** (RUC 10/20, Razón Social y Representante Legal), desarrollada bajo **Arquitectura Hexagonal (Puertos y Adaptadores / Ports & Adapters Architecture)**.
+**CambistaOnline** es una plataforma web financiera de grado empresarial diseñada para la cotización e intercambio de divisas en tiempo real entre **Dólares (USD)**, **Euros (EUR)** y **Soles (PEN)**. Soporta **Persona Natural** (DNI/CE) y **Persona Jurídica** (RUC 10/20, Razón Social y Representante Legal), desarrollada bajo **Arquitectura Hexagonal (Puertos y Adaptadores / Ports & Adapters Architecture)** y persistida en **MongoDB Atlas NoSQL**.
 
 ---
 
-## 🏛️ Transformación e Implementación de la Arquitectura Hexagonal (Ports & Adapters)
+## 🏛️ Explicación Detallada de la Arquitectura Hexagonal (Ports & Adapters)
 
-Para elevar la mantenibilidad, desacoplamiento y testabilidad a estándares bancarios internacionales, la aplicación fue transformada a **Arquitectura Hexagonal pura** (definida por Alistair Cockburn).
+Para elevar la mantenibilidad, desacoplamiento y testabilidad a estándares bancarios internacionales, la aplicación fue estructurada bajo **Arquitectura Hexagonal pura** (patrón propuesto por Alistair Cockburn).
 
 En esta arquitectura, la lógica de negocio y las reglas del dominio habitan dentro de un **Hexágono Aislado** que interactúa con el mundo exterior únicamente a través de **Puertos** (Contratos/Interfaces) y **Adaptadores** (Implementaciones tecnológicas).
 
@@ -33,90 +33,90 @@ En esta arquitectura, la lógica de negocio y las reglas del dominio habitan den
                |   |   (Interfaces: UserPersistencePort, OrderPersistence)  |   |
                |   +-----------------------------------------------------------+   |
                |                       DRIVEN ADAPTERS                             |
-               |  (JPA Adapters, Neon PostgreSQL, Spring Security JWT, Flyway)     |
+               |  (MongoDB Atlas Adapters, Spring Security JWT, BCrypt)            |
                +-------------------------------------------------------------------+
 ```
 
 ---
 
-## 🔍 Detalle de Cambios Realizados por Capas y Bounded Contexts
+### 🧱 Las 3 Capas Fundamentales del Hexágono
 
-### 1. Puertos de Entrada / Primarios (`application.ports.inbound`)
-Definen los contratos abstractos de los **Casos de Uso** consumidos por los Adaptadores de Entrada (Controladores REST).
+```mermaid
+graph TD
+    subgraph DrivingAdapters ["1. Adaptadores Primarios / Conductores (Adapters Inbound)"]
+        REST["REST Controllers (AuthController, OrderController)"]
+    end
 
-- **Módulo `auth`**:
-  - `RegisterUserUseCase`: Interfaz del caso de uso de registro.
-  - `AuthenticateUserUseCase`: Interfaz para autenticación de credenciales y emisión de JWT.
-  - `GetCurrentUserUseCase`: Interfaz para la obtención del perfil autenticado.
-- **Módulo `engine`**:
-  - `CalculateExchangeRateUseCase`: Interfaz para la cotización dinámica de tipos de cambio.
-- **Módulo `order`**:
-  - `CreateExchangeOrderUseCase`: Interfaz para generación de órdenes `TRX-XXXXXX`.
-  - `GetMyOrdersUseCase`: Interfaz para consulta del historial de operaciones.
-  - `ConfirmTransferUseCase`: Interfaz para confirmación de transferencia y cambio de estado a `COMPLETED`.
+    subgraph CoreApplication ["2. Capa de Aplicación y Puertos (Application)"]
+        InboundPorts["Puertos de Entrada (Inbound Ports / UseCases)"]
+        AppServices["Servicios de Aplicación (Use Case Implementations)"]
+        OutboundPorts["Puertos de Salida (Outbound Ports / Persistence Interfaces)"]
+    end
 
----
+    subgraph CoreDomain ["3. Núcleo de Dominio (Domain Core - Pure POJOs)"]
+        Entities["Entidades de Dominio (User, ExchangeOrder)"]
+        ValueObjects["Objetos de Valor (Email, Dni, Ruc, Password)"]
+        DomainServices["Servicios de Dominio (RateCalculationStrategy)"]
+    end
 
-### 2. Servicios de Aplicación (`application.service`)
-Implementan formalmente las interfaces de los Puertos Primarios y orquestan las entidades del dominio sin depender de ningún framework web o de persistencia.
+    subgraph DrivenAdapters ["4. Adaptadores Secundarios / Conducidos (Adapters Outbound)"]
+        MongoAdapters["Adaptadores MongoDB (MongoUserPersistenceAdapter, MongoOrderAdapter)"]
+        SecurityAdapters["Adaptadores de Seguridad (BcryptAdapter, JwtProviderAdapter)"]
+    end
 
-- **`RegisterUserService`**: Orquesta la creación de `User`, validación de correo único y cifrado de clave.
-- **`AuthenticateUserService`**: Valida credenciales contra `UserPersistencePort` y genera tokens con `JwtTokenPort`.
-- **`GetCurrentUserService`**: Recupera el dominio `User` y mapea hacia DTO de respuesta.
-- **`CalculateExchangeRateService`**: Ejecuta el pipeline de estrategias de cálculo dinámico (SBS, spreads, horario, estacionalidad y puntos).
-- **`CreateExchangeOrderService`**: Genera número de transacción, calcula fecha de expiración a 15 min y gestiona abono/canje de CambiPuntos.
-- **`GetMyOrdersService`**: Retorna el historial de transacciones en formato `OrderSummaryDto`.
-- **`ConfirmTransferService`**: Marca la orden como `COMPLETED` tras la transferencia.
-
----
-
-### 3. Puertos de Salida / Secundarios (`application.ports.outbound`)
-Definen los contratos de salida que requiere el núcleo para interactuar con infraestructura (Bases de datos, servicios de clave, JWT).
-
-- **`UserPersistencePort`**: Puerto para operaciones de persistencia de usuarios.
-- **`ExchangeOrderPersistencePort`**: Puerto para guardado y búsqueda de órdenes de cambio.
-- **`ExchangeRatePersistencePort`**: Puerto para obtención de tasas de cambio base.
-- **`ExchangeRulePersistencePort`**: Puerto para recuperación de reglas comerciales.
-- **`UserPointsPersistencePort`**: Puerto para la gestión de saldo de CambiPuntos.
-- **`PasswordEncoderPort`**: Puerto abstracto para algoritmos de hashing.
-- **`JwtTokenPort`**: Puerto abstracto para generación y validación de tokens JWT.
+    REST --> InboundPorts
+    InboundPorts --> AppServices
+    AppServices --> CoreDomain
+    AppServices --> OutboundPorts
+    MongoAdapters --> OutboundPorts
+    SecurityAdapters --> OutboundPorts
+```
 
 ---
 
-### 4. Adaptadores de Entrada / Primarios (`adapters.inbound.rest`)
-Invocan a los Puertos de Entrada para procesar las peticiones HTTP externas.
+### 1. Dominio Puro (`com.cambistaonline.*.domain`)
+Es el centro del hexágono. Contiene los modelos de negocio y reglas bancarias esenciales sin ninguna dependencia de frameworks externos (sin anotaciones de Spring, sin JPA, sin MongoDB, sin Jackson):
 
-- **`AuthController`** (`/api/v1/auth`): Maneja peticiones `/register`, `/login` y `/me`.
-- **`ExchangeEngineController`** (`/api/v1/exchange`, `/api/v1/rates`): Expone `/calculate` y `/breakdown`.
-- **`ExchangeOrderController`** (`/api/v1/orders`): Expone endpoints de creación, listado y confirmación de transferencias.
+- **Entidades de Dominio**: `User`, `ExchangeOrder`.
+- **Objetos de Valor (Value Objects)**: `Email`, `Password`, `Dni`, `Ruc`, `OrderNumber`.
+- **Servicios de Dominio**: Estrategias de cálculo de tipo de cambio y nivel de cliente.
 
----
+### 2. Capa de Aplicación y Puertos (`com.cambistaonline.*.application`)
+Orquesta los flujos de uso de la aplicación mediante contratos independientes de la infraestructura:
 
-### 5. Adaptadores de Salida / Secundarios (`adapters.outbound`)
-Implementan los Puertos de Salida secundarias para conectarse con la infraestructura real de persistencia (**MongoDB NoSQL** y **JPA / PostgreSQL**).
+- **Puertos de Entrada (Inbound Ports / Primary)**: Interfaces que definen lo que la aplicación puede hacer desde el exterior (`RegisterUserUseCase`, `AuthenticateUserUseCase`, `CalculateExchangeRateUseCase`, `CreateExchangeOrderUseCase`).
+- **Servicios de Aplicación (`application.service`)**: Implementan los puertos de entrada coordinando la lógica de negocio (`RegisterUserService`, `CreateExchangeOrderService`).
+- **Puertos de Salida (Outbound Ports / Secondary)**: Interfaces de persistencia y servicios que la aplicación requiere del exterior (`UserPersistencePort`, `ExchangeOrderPersistencePort`, `UserPointsPersistencePort`, `PasswordEncoderPort`, `JwtTokenPort`).
 
-- **`MongoUserPersistenceAdapter`** & **`SpringDataMongoUserRepository`**: Adaptador NoSQL para la colección `users` en MongoDB Atlas / Local.
-- **`MongoOrderPersistenceAdapter`** & **`SpringDataMongoOrderRepository`**: Adaptador NoSQL para la colección `operacion` en MongoDB.
-- **`MongoEnginePersistenceAdapter`** & **`SpringDataMongoUserPointsRepository`**: Adaptador NoSQL para la colección `usuarios_puntos` y reglas comerciales.
-- **`UserRepositoryAdapter`** & **`ExchangeOrderPersistenceAdapter`**: Adaptadores relacionales JPA (compatibilidad relacional).
-- **`BcryptPasswordEncoderAdapter`**: Adaptador que encapsula BCrypt de Spring Security.
-- **`JwtProviderAdapter`**: Adaptador que implementa la firma y lectura de tokens JWT HMAC-SHA256.
+### 3. Adaptadores Primarios y Secundarios (`com.cambistaonline.*.adapters`)
+Conectan la aplicación con tecnologías del mundo exterior:
 
----
-
-### 🛡️ Resiliencia y Mapeo en el Registro de Usuarios (`auth`)
-A diferencia de la implementación previa, en el refactor Hexagonal se aplicaron mejoras de resiliencia en la capa de **Aplicación** y **Adaptadores**:
-
-1. **Garantía de Marcas de Tiempo Non-Null (`createdAt` / `updatedAt`)**:
-   - `RegisterUserService` y `UserRepositoryAdapter` aseguran la inicialización explícita de `createdAt` y `updatedAt` con `LocalDateTime.now()`, evitando excepciones de restricción de base de datos (`NOT NULL`) en Neon PostgreSQL.
-2. **Sanitización de Identificadores y Alineación DTO**:
-   - Sanitización de valores vacíos para `dni` y `ruc` al construir Value Objects en el dominio.
-   - Normalización de propiedades `role` y `rol` en el payload JSON entre el frontend React y `AuthController`.
+- **Adaptadores de Entrada (Driving / Inbound)**: Controladores REST HTTP (`AuthController`, `ExchangeEngineController`, `ExchangeOrderController`) que traducen las solicitudes del cliente Web a llamadas a los Puertos de Entrada.
+- **Adaptadores de Salida (Driven / Outbound - MongoDB)**: Implementan los Puertos de Salida conectándose a las colecciones de **MongoDB Atlas NoSQL**:
+  - `MongoUserPersistenceAdapter` & `SpringDataMongoUserRepository`: Persistencia para la colección `users`.
+  - `MongoOrderPersistenceAdapter` & `SpringDataMongoOrderRepository`: Persistencia para la colección `operacion`.
+  - `MongoEnginePersistenceAdapter` & `SpringDataMongoUserPointsRepository`: Persistencia para la colección `usuarios_puntos`.
+  - `BcryptPasswordEncoderAdapter`: Implementa el hash de contraseñas.
+  - `JwtProviderAdapter`: Implementa la generación y validación de JSON Web Tokens (JWT).
 
 ---
 
-### 6. Gobierno y Reglas Arquitectónicas Auditeadas (`ArchUnit 1.3`)
-Se implementó la suite **`HexagonalArchitectureTest.java`** que verifica automáticamente en cada compilación `mvn test`:
+## 🛡️ Resiliencia y Mapeo Dual NoSQL (MongoDB Atlas)
+
+Para garantizar compatibilidad completa tanto con datos relacionales previa migración como con transacciones creadas de forma nativa en MongoDB:
+
+1. **Mapeo Dual de Nombres de Campos**:
+   - `OrderDocument` y `SpringDataMongoOrderRepository` soportan búsquedas y lecturas por ambos formatos de nombres:
+     - **Migrados (SQL)**: `correo_user`, `nro_orden`, `tipo_operacion`, `monto_origen`, `monto_destino`, `tasa_final`, `estado`.
+     - **Nativos (NoSQL)**: `user_email`, `order_number`, `operation_type`, `amount_sent`, `amount_received`, `exchange_rate`, `status`.
+2. **Formateador Resiliente de Fechas**:
+   - Mapea de forma segura fechas con espacio (`YYYY-MM-DD HH:MM:SS`), ISO-8601 (`YYYY-MM-DDTHH:MM:SS`) o timestamps de Mongo BSON.
+
+---
+
+## 🧪 Pruebas de Arquitectura Automatizadas (`ArchUnit 1.3`)
+
+Se implementó la suite **`HexagonalArchitectureTest.java`** que verifica automáticamente en cada compilación `mvn test` que no existan violaciones de acoplamiento:
 
 ```java
 @Test
@@ -138,84 +138,88 @@ void applicationServicesAndPortsShouldNotDependOnInfrastructureAdapters() {
 
 ---
 
-## 📌 Catálogo de Endpoints REST
+## 🐳 Guía de Despliegue con Docker y Docker Compose
 
-### 🔐 1. Módulo de Autenticación (`/api/v1/auth`)
+Toda la aplicación (Backend Java Spring Boot + Frontend React Nginx) se despliega mediante contenedores Docker listos para producción.
 
-| Método | Endpoint | Descripción | Requiere JWT |
-| :--- | :--- | :--- | :---: |
-| `POST` | `/api/v1/auth/register` | Registro de usuario como Persona Natural ("N") o Jurídica ("J") | ❌ |
-| `POST` | `/api/v1/auth/login` | Autenticación y retorno de JWT Access Token | ❌ |
-| `GET` | `/api/v1/auth/me` | Obtiene la información del perfil del usuario autenticado | ✅ |
-
-### 💱 2. Motor de Cotización y Desglose (`/api/v1/exchange` & `/api/v1/rates`)
-
-| Método | Endpoint | Descripción | Requiere JWT |
-| :--- | :--- | :--- | :---: |
-| `POST` | `/api/v1/exchange/calculate` | Calcula el tipo de cambio dinámico aplicando el pipeline completo de reglas | ✅ |
-| `GET` | `/api/v1/rates/breakdown` | Retorna el desglose de tasa (SBS, spread, horario) y el saldo real de CambiPuntos en Neon DB | ✅ |
-
-### 🧾 3. Módulo de Transacciones u Órdenes (`/api/v1/orders`)
-
-| Método | Endpoint | Descripción | Requiere JWT |
-| :--- | :--- | :--- | :---: |
-| `POST` | `/api/v1/orders` | Crea una nueva orden de cambio (`TRX-XXXXXX`), congela la tasa por 15 min y gestiona puntos | ✅ |
-| `GET` | `/api/v1/orders` | Consulta el historial completo de transacciones realizadas por el usuario | ✅ |
-| `POST` | `/api/v1/orders/{orderNumber}/confirm-transfer` | Marca la orden como completada (`COMPLETED`) e ingresa la operación | ✅ |
+### 📋 Requisitos Previos:
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (con Docker Engine y Docker Compose instalados).
+- Instancia activa de **MongoDB Atlas** (o MongoDB local).
 
 ---
 
-## 🛠️ Tecnologías Aplicadas
+### Paso 1: Configurar las Variables de Entorno (`backend/.env`)
 
-### Backend Enterprise (Java 17 + Spring Boot 3)
-- **Java 17 LTS**: Programación orientada a objetos inmutable.
-- **Spring Boot 3.3.1**: Framework empresarial RESTful.
-- **Spring Security 6 + JWT**: Autenticación sin estado (*Stateless*).
-- **Spring Data JPA & Hibernate**: Persistencia relacional.
-- **Flyway Database Migrations**: Control de versiones de BD (V1 a V7).
-- **ArchUnit 1.3**: Auditoría automatizada de Arquitectura Hexagonal.
+Edita o crea el archivo **`backend/.env`** con tu URI de MongoDB Atlas y tu clave secreta JWT:
 
-### Frontend Moderno (React 18 + Vite + Vanilla CSS)
-- **React 18 & Vite 5**: UI responsiva con compilación de producción optimizada.
-- **Zustand**: Gestión de estado global persistente (`useAuthStore`, `useFxStore`, `useOrderStore`).
-- **Axios**: Interceptores automáticos Bearer Token.
-
----
-
-## 🚀 Requisitos e Instalación en Desarrollo
-
-### Paso 1: Clonar el Repositorio
-```bash
-git clone https://github.com/TU_USUARIO/cambista_online.git
-cd cambista_online
-```
-
-### Paso 2: Configurar las Variables de Entorno (`backend/.env`)
 ```env
+SPRING_DATA_MONGODB_URI=mongodb+srv://admin:admin@cambistaonilne.vgbiyuj.mongodb.net/sample_mflix?retryWrites=true&w=majority&appName=cambistaOnilne
 SPRING_DATASOURCE_URL=jdbc:postgresql://ep-young-tooth-ac5b010f-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require
-SPRING_DATASOURCE_USERNAME=tu_usuario_neondb
-SPRING_DATASOURCE_PASSWORD=tu_password_de_neon
+SPRING_DATASOURCE_USERNAME=neondb_owner
+SPRING_DATASOURCE_PASSWORD=npg_9vFz6gRJaCHP
 JWT_SECRET=tu_jwt_secret
 JWT_EXPIRATION_MS=3600000
 ```
 
 ---
 
-### Paso 3: Levantar los Contenedores con Docker Compose
+### Paso 2: Desplegar la Aplicación con Docker Compose
+
+Ejecuta el siguiente comando en la raíz del repositorio:
+
 ```bash
 docker compose up --build -d
 ```
 
-#### 🌐 URLs de Acceso:
-- **Aplicación Web Frontend**: 👉 **`http://localhost:3000`**
-- **Documentación REST Backend (Swagger UI)**: 👉 **`http://localhost:8080/swagger-ui.html`**
+Este comando:
+1. Compilará la imagen de Docker del backend Java 17 (`cambista-backend-app`).
+2. Compilará los assets de producción de React + Vite y configurará el servidor web Nginx (`cambista-frontend-app`).
+3. Iniciará ambos contenedores en segundo plano.
 
 ---
 
-## 🧪 Pruebas Automatizadas
+### Paso 3: Verificar el Estado de los Contenedores
 
-### Pruebas de Backend y Arquitectura Hexagonal (ArchUnit + JUnit 5)
 ```bash
-cd backend
-mvn test
+# Ver estado de los servicios
+docker compose ps
+
+# Ver logs en tiempo real del backend
+docker logs cambista-backend-app -f
+
+# Ver logs en tiempo real del frontend
+docker logs cambista-frontend-app -f
 ```
+
+---
+
+### 🌐 URLs de Acceso a la Aplicación:
+
+- **Frontend Web App (React 18)**: 👉 `http://localhost:3000`
+- **Backend REST API**: 👉 `http://localhost:8080`
+- **Documentación Swagger / OpenAPI**: 👉 `http://localhost:8080/swagger-ui.html`
+
+---
+
+### 🛑 Detener y Limpiar Contenedores:
+
+```bash
+docker compose down
+```
+
+---
+
+## 📡 Endpoints Principales de la API REST
+
+### Auth API (`/api/v1/auth`)
+- **`POST /api/v1/auth/register`**: Registro de usuarios Persona Natural / Jurídica.
+- **`POST /api/v1/auth/login`**: Autenticación y emisión de token JWT.
+- **`GET /api/v1/auth/me`**: Obtención del perfil del usuario autenticado.
+
+### Exchange Engine API (`/api/v1/exchange`)
+- **`POST /api/v1/exchange/calculate`**: Cálculo dinámico de tasa de cambio (con descuentos por CambiPuntos, hora pico y nivel de cliente).
+
+### Exchange Order API (`/api/v1/orders`)
+- **`POST /api/v1/orders`**: Creación de nueva orden de cambio de divisas.
+- **`GET /api/v1/orders`**: Obtención del historial de operaciones del usuario.
+- **`POST /api/v1/orders/confirm`**: Confirmación de transferencia bancaria realizada por el cliente.
