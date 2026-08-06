@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -41,8 +42,9 @@ public class MongoOrderPersistenceAdapter implements ExchangeOrderRepositoryPort
 
     @Override
     public List<ExchangeOrder> findByUserEmail(String userEmail) {
-        return orderRepository.findByUserEmailOrderByCreatedAtDesc(userEmail).stream()
+        return orderRepository.findByUserEmail(userEmail).stream()
                 .map(this::mapToDomain)
+                .sorted(Comparator.comparing(ExchangeOrder::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
                 .collect(Collectors.toList());
     }
 
@@ -69,17 +71,34 @@ public class MongoOrderPersistenceAdapter implements ExchangeOrderRepositoryPort
     }
 
     private ExchangeOrder mapToDomain(OrderDocument doc) {
+        String statusStr = doc.getStatus();
+        OrderStatus statusEnum;
+        try {
+            statusEnum = OrderStatus.valueOf(statusStr);
+        } catch (Exception e) {
+            statusEnum = OrderStatus.COMPLETED;
+        }
+
+        String opTypeStr = doc.getOperationType();
+        OperationType opTypeEnum = "VENTA".equalsIgnoreCase(opTypeStr) ? OperationType.VENTA : OperationType.COMPRA;
+
+        String currOrigStr = doc.getCurrencyOrigin();
+        CurrencyType currOrigEnum = "PEN".equalsIgnoreCase(currOrigStr) ? CurrencyType.PEN : CurrencyType.USD;
+
+        String currDestStr = doc.getCurrencyDestination();
+        CurrencyType currDestEnum = "PEN".equalsIgnoreCase(currDestStr) ? CurrencyType.PEN : CurrencyType.USD;
+
         return new ExchangeOrder(
                 null,
                 doc.getOrderNumber(),
-                OperationType.valueOf(doc.getOperationType()),
-                CurrencyType.valueOf(doc.getCurrencyOrigin()),
-                CurrencyType.valueOf(doc.getCurrencyDestination()),
+                opTypeEnum,
+                currOrigEnum,
+                currDestEnum,
                 doc.getAmountSent(),
                 doc.getAmountReceived(),
                 doc.getExchangeRate(),
                 doc.getPointsRedeemed() != null ? doc.getPointsRedeemed() : 0,
-                OrderStatus.valueOf(doc.getStatus()),
+                statusEnum,
                 doc.getUserEmail(),
                 doc.getUserRole(),
                 parseDateTime(doc.getExpiresAt()),
