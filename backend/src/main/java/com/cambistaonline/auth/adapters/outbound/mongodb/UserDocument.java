@@ -4,8 +4,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
-import java.time.LocalDateTime;
-
 @Document(collection = "users")
 public class UserDocument {
 
@@ -46,14 +44,14 @@ public class UserDocument {
     private String status;
 
     @Field("created_at")
-    private LocalDateTime createdAt;
+    private Object createdAt;
 
     @Field("updated_at")
-    private LocalDateTime updatedAt;
+    private Object updatedAt;
 
     public UserDocument() {}
 
-    public UserDocument(String mongoId, String id, String email, String password, String firstName, String lastName, String dni, String companyName, String ruc, String legalRepresentativeName, String role, String status, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public UserDocument(String mongoId, String id, String email, String password, String firstName, String lastName, String dni, String companyName, String ruc, String legalRepresentativeName, String role, String status, Object createdAt, Object updatedAt) {
         this.mongoId = mongoId;
         this.id = id;
         this.email = email;
@@ -106,9 +104,9 @@ public class UserDocument {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public Object getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Object createdAt) { this.createdAt = createdAt; }
 
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public Object getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(Object updatedAt) { this.updatedAt = updatedAt; }
 }

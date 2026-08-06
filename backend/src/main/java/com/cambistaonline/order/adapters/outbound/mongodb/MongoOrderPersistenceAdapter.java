@@ -9,6 +9,10 @@ import com.cambistaonline.order.domain.ports.ExchangeOrderRepositoryPort;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -59,8 +63,8 @@ public class MongoOrderPersistenceAdapter implements ExchangeOrderRepositoryPort
                 domain.getStatus().name(),
                 domain.getUserEmail(),
                 domain.getUserRole(),
-                domain.getExpiresAt(),
-                domain.getCreatedAt()
+                domain.getExpiresAt() != null ? domain.getExpiresAt() : LocalDateTime.now().plusMinutes(15),
+                domain.getCreatedAt() != null ? domain.getCreatedAt() : LocalDateTime.now()
         );
     }
 
@@ -78,8 +82,26 @@ public class MongoOrderPersistenceAdapter implements ExchangeOrderRepositoryPort
                 OrderStatus.valueOf(doc.getStatus()),
                 doc.getUserEmail(),
                 doc.getUserRole(),
-                doc.getExpiresAt(),
-                doc.getCreatedAt()
+                parseDateTime(doc.getExpiresAt()),
+                parseDateTime(doc.getCreatedAt())
         );
+    }
+
+    private LocalDateTime parseDateTime(Object input) {
+        if (input == null) return LocalDateTime.now();
+        if (input instanceof LocalDateTime ldt) return ldt;
+        if (input instanceof Date date) return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        String str = input.toString().trim();
+        try {
+            if (str.contains(" ")) {
+                str = str.replace(" ", "T");
+            }
+            if (str.contains("+")) {
+                return OffsetDateTime.parse(str).toLocalDateTime();
+            }
+            return LocalDateTime.parse(str);
+        } catch (Exception e) {
+            return LocalDateTime.now();
+        }
     }
 }

@@ -5,7 +5,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Document(collection = "operacion")
 public class OrderDocument {
@@ -47,14 +46,14 @@ public class OrderDocument {
     private String userRole;
 
     @Field("expires_at")
-    private LocalDateTime expiresAt;
+    private Object expiresAt;
 
     @Field("created_at")
-    private LocalDateTime createdAt;
+    private Object createdAt;
 
     public OrderDocument() {}
 
-    public OrderDocument(String mongoId, String orderNumber, String operationType, String currencyOrigin, String currencyDestination, BigDecimal amountSent, BigDecimal amountReceived, BigDecimal exchangeRate, Integer pointsRedeemed, String status, String userEmail, String userRole, LocalDateTime expiresAt, LocalDateTime createdAt) {
+    public OrderDocument(String mongoId, String orderNumber, String operationType, String currencyOrigin, String currencyDestination, BigDecimal amountSent, BigDecimal amountReceived, BigDecimal exchangeRate, Integer pointsRedeemed, String status, String userEmail, String userRole, Object expiresAt, Object createdAt) {
         this.mongoId = mongoId;
         this.orderNumber = orderNumber;
         this.operationType = operationType;
@@ -107,9 +106,9 @@ public class OrderDocument {
     public String getUserRole() { return userRole; }
     public void setUserRole(String userRole) { this.userRole = userRole; }
 
-    public LocalDateTime getExpiresAt() { return expiresAt; }
-    public void setExpiresAt(LocalDateTime expiresAt) { this.expiresAt = expiresAt; }
+    public Object getExpiresAt() { return expiresAt; }
+    public void setExpiresAt(Object expiresAt) { this.expiresAt = expiresAt; }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public Object getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Object createdAt) { this.createdAt = createdAt; }
 }

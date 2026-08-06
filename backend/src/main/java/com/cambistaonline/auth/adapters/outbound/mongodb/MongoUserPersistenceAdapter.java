@@ -12,6 +12,9 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -74,7 +77,7 @@ public class MongoUserPersistenceAdapter implements UserRepositoryPort, UserPers
     }
 
     private User toDomain(UserDocument doc) {
-        UUID id = doc.getId() != null ? UUID.fromString(doc.getId()) : UUID.randomUUID();
+        UUID id = doc.getId() != null ? parseUUID(doc.getId()) : UUID.randomUUID();
 
         return User.builder()
                 .id(id)
@@ -82,14 +85,40 @@ public class MongoUserPersistenceAdapter implements UserRepositoryPort, UserPers
                 .password(Password.fromHash(doc.getPassword()))
                 .firstName(doc.getFirstName())
                 .lastName(doc.getLastName())
-                .dni(doc.getDni() != null ? new Dni(doc.getDni()) : null)
+                .dni(doc.getDni() != null && !doc.getDni().isBlank() ? new Dni(doc.getDni()) : null)
                 .companyName(doc.getCompanyName())
-                .ruc(doc.getRuc() != null ? new Ruc(doc.getRuc()) : null)
+                .ruc(doc.getRuc() != null && !doc.getRuc().isBlank() ? new Ruc(doc.getRuc()) : null)
                 .legalRepresentativeName(doc.getLegalRepresentativeName())
-                .role(doc.getRole())
-                .status(UserStatus.valueOf(doc.getStatus()))
-                .createdAt(doc.getCreatedAt())
-                .updatedAt(doc.getUpdatedAt())
+                .role(doc.getRole() != null ? doc.getRole() : "N")
+                .status(doc.getStatus() != null ? UserStatus.valueOf(doc.getStatus()) : UserStatus.ACTIVE)
+                .createdAt(parseDateTime(doc.getCreatedAt()))
+                .updatedAt(parseDateTime(doc.getUpdatedAt()))
                 .build();
+    }
+
+    private UUID parseUUID(String str) {
+        try {
+            return UUID.fromString(str);
+        } catch (Exception e) {
+            return UUID.randomUUID();
+        }
+    }
+
+    private LocalDateTime parseDateTime(Object input) {
+        if (input == null) return LocalDateTime.now();
+        if (input instanceof LocalDateTime ldt) return ldt;
+        if (input instanceof Date date) return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        String str = input.toString().trim();
+        try {
+            if (str.contains(" ")) {
+                str = str.replace(" ", "T");
+            }
+            if (str.contains("+")) {
+                return OffsetDateTime.parse(str).toLocalDateTime();
+            }
+            return LocalDateTime.parse(str);
+        } catch (Exception e) {
+            return LocalDateTime.now();
+        }
     }
 }
