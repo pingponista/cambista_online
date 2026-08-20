@@ -23,9 +23,10 @@ En esta versión (`feature/messaging`), el sistema evoluciona a una **Arquitectu
 4. [Beneficios de esta Nueva Versión](#-4-beneficios-de-esta-nueva-versión)
 5. [Dificultades y Desafíos Técnicos](#-5-dificultades-y-desafíos-técnicos)
 6. [Flujo de una Transacción con Kafka: Cambio de Soles / Dólares](#-6-flujo-de-una-transacción-con-kafka-cambio-de-soles--dólares)
-7. [Guía para Levantar el Proyecto en Local](#-7-guía-para-levantar-el-proyecto-en-local)
-8. [Demostración y Verificación del Flujo de Mensajería](#-8-demostración-y-verificación-del-flujo-de-mensajería)
-9. [Endpoints de la API](#-9-endpoints-de-la-api)
+7. [Flujo Asíncrono con RabbitMQ: Notificaciones y Mensajería Operativa](#-7-flujo-asíncrono-con-rabbitmq-notificaciones-y-mensajería-operativa)
+8. [Guía para Levantar el Proyecto en Local](#-8-guía-para-levantar-el-proyecto-en-local)
+9. [Demostración y Verificación del Flujo de Mensajería](#-9-demostración-y-verificación-del-flujo-de-mensajería)
+10. [Endpoints de la API](#-10-endpoints-de-la-api)
 
 ---
 
@@ -213,14 +214,59 @@ Operador / Sistema
 3. `KafkaOrderEventPublisherAdapter` publica el evento en el tópico `cambista.orders.completed`.
 4. `KafkaOrderEventConsumer` certifica el cierre y ejecución financiera de la transacción.
 
-### 💡 ¿Por qué Kafka en este momento financiero?
-- **Auditoría inmutable (Compliance SBS)**: MongoDB almacena el estado actual mutable; Kafka conserva la historia cronológica inalterable de todos los eventos.
-- **Desacoplamiento asíncrono**: La API REST responde al cliente en milisegundos (`201 Created`), mientras los procesos analíticos y de auditoría se ejecutan en segundo plano.
-- **Preparado para Microservicios**: Si a futuro se integran servicios de Prevención de Lavado de Dinero (PLD), Contabilidad o Dashboards en tiempo real, solo necesitarán suscribirse a estos tópicos sin sobrecargar la base de datos operativa.
+---
+
+## 📬 7. Flujo Asíncrono con RabbitMQ: Notificaciones y Mensajería Operativa
+
+Mientras que Kafka gestiona el registro inmutable de auditoría, **RabbitMQ** se encarga de las **tareas operativas asíncronas y notificaciones al usuario**. En una aplicación fintech real, el envío de correos o SMS no debe bloquear el hilo de ejecución principal de la API.
+
+```
+                                  Exchange Topic: 'cambista.notifications'
+                                                  │
+                ┌─────────────────────────────────┼─────────────────────────────────┐
+                │ Routing: "user.welcome"         │ Routing: "order.created"        │ Routing: "order.completed"
+                ▼                                 ▼                                 ▼
+      [user.welcome.queue]              [order.created.queue]             [order.completed.queue]
+                │                                 │                                 │
+                ▼                                 ▼                                 ▼
+   RabbitMQUserNotificationConsumer  RabbitMQOrderNotificationConsumer RabbitMQOrderNotificationConsumer
+                │                                 │                                 │
+     📧 Email de Bienvenida          📧 Instrucciones de Pago          📧 Comprobante de Abono
+```
+
+### 1️⃣ Momento 1: Registro de un nuevo Usuario (`POST /api/v1/auth/register`)
+- **Disparador**: El usuario completa su registro de cuenta (Persona Natural o Jurídica).
+- **En el código**: `RegisterUserService` guarda el usuario en MongoDB y llama a `userNotificationPort.notifyWelcome(event)`.
+- **Flujo**:
+  1. `RabbitMQUserNotificationAdapter` envía el mensaje con routing key `user.welcome`.
+  2. RabbitMQ deposita el mensaje en `user.welcome.queue`.
+  3. `RabbitMQUserNotificationConsumer` toma el mensaje y procesa el email de bienvenida de forma asíncrona.
+
+### 2️⃣ Momento 2: Creación de la Orden de Cambio (`POST /api/v1/orders`)
+- **Disparador**: El cliente solicita cotizar y abrir una orden de cambio de USD/PEN.
+- **En el código**: `CreateExchangeOrderService` invoca `orderNotificationPort.notifyOrderCreated(event)`.
+- **Flujo**:
+  1. `RabbitMQOrderNotificationAdapter` publica el mensaje con routing key `order.created`.
+  2. El mensaje entra a `order.created.queue`.
+  3. `RabbitMQOrderNotificationConsumer` procesa y despacha el correo con el número de operación (`TRX-XXXXXX`), cuentas bancarias de abono y tiempo límite para transferir (15 min).
+
+### 3️⃣ Momento 3: Confirmación y Liquidación (`POST /api/v1/orders/confirm`)
+- **Disparador**: Se valida la transferencia bancaria y se completa la operación.
+- **En el código**: `ConfirmTransferService` invoca `orderNotificationPort.notifyOrderCompleted(event)`.
+- **Flujo**:
+  1. `RabbitMQOrderNotificationAdapter` publica con routing key `order.completed`.
+  2. Cae en `order.completed.queue`.
+  3. El consumidor procesa el comprobante de cambio de divisas completado.
+
+### 🎯 ¿Cuál es la utilidad REAL de RabbitMQ frente a un proceso síncrono?
+1. **⚡ Rendimiento y Latencia Cero en la API**: Conectarse a servicios de correos (SMTP, SendGrid, Amazon SES) toma entre 1.5 y 3 segundos. Publicar en RabbitMQ toma **1 milisegundo**, respondiendo al usuario de inmediato sin congelar la pantalla.
+2. **🛡️ Resiliencia ante Caídas**: Si el servicio de correos se cae temporalmente, las órdenes no fallan; los mensajes **esperan seguros en la cola de RabbitMQ** hasta que el servicio se restablezca.
+3. **🚦 Control de Tráfico en Horas Pico (Backpressure)**: Si entran 500 operaciones por minuto, RabbitMQ las almacena en la cola y los consumidores las procesan a un ritmo constante y controlado sin saturar los servidores.
+4. **🔀 Enrutamiento Flexible (Topic Exchange)**: Si mañana se desea agregar notificaciones por **WhatsApp o SMS con Twilio**, solo se vincula una nueva cola a `order.created` sin tener que modificar una sola línea de la lógica de negocio.
 
 ---
 
-## 💻 7. Guía para Levantar el Proyecto en Local
+## 💻 8. Guía para Levantar el Proyecto en Local
 
 ### 📋 Requisitos Previos:
 - **[Docker Desktop](https://www.docker.com/products/docker-desktop/)** instalado y en ejecución.
@@ -288,7 +334,7 @@ Todos los contenedores deben figurar en estado `running` (Up).
 
 ---
 
-## 🖥️ 8. Demostración y Verificación del Flujo de Mensajería
+## 🖥️ 9. Demostración y Verificación del Flujo de Mensajería
 
 ### 🌐 URLs de Acceso:
 - **Frontend Web App**: 👉 [http://localhost:3000](http://localhost:3000)
@@ -349,7 +395,7 @@ docker compose down
 
 ---
 
-## 📡 9. Endpoints de la API
+## 📡 10. Endpoints de la API
 
 | Módulo | Método | Endpoint | Descripción |
 | :--- | :--- | :--- | :--- |
