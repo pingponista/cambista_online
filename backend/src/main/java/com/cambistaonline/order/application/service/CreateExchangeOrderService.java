@@ -8,6 +8,9 @@ import com.cambistaonline.engine.domain.ports.UserPointsRepositoryPort;
 import com.cambistaonline.order.application.dto.CreateOrderRequest;
 import com.cambistaonline.order.application.dto.CreateOrderResponse;
 import com.cambistaonline.order.application.ports.inbound.CreateExchangeOrderUseCase;
+import com.cambistaonline.order.application.ports.outbound.OrderEventPublisherPort;
+import com.cambistaonline.order.application.ports.outbound.OrderNotificationPort;
+import com.cambistaonline.order.domain.events.OrderCreatedEvent;
 import com.cambistaonline.order.domain.model.ExchangeOrder;
 import com.cambistaonline.order.domain.ports.ExchangeOrderRepositoryPort;
 
@@ -15,17 +18,24 @@ import java.math.BigDecimal;
 import java.security.SecureRandom;
 
 public class CreateExchangeOrderService implements CreateExchangeOrderUseCase {
+
     private final ExchangeOrderRepositoryPort orderRepositoryPort;
     private final CalculateExchangeRateUseCase calculateExchangeRateUseCase;
     private final UserPointsRepositoryPort userPointsRepositoryPort;
+    private final OrderEventPublisherPort orderEventPublisherPort;
+    private final OrderNotificationPort orderNotificationPort;
     private final SecureRandom random = new SecureRandom();
 
     public CreateExchangeOrderService(ExchangeOrderRepositoryPort orderRepositoryPort,
                                       CalculateExchangeRateUseCase calculateExchangeRateUseCase,
-                                      UserPointsRepositoryPort userPointsRepositoryPort) {
+                                      UserPointsRepositoryPort userPointsRepositoryPort,
+                                      OrderEventPublisherPort orderEventPublisherPort,
+                                      OrderNotificationPort orderNotificationPort) {
         this.orderRepositoryPort = orderRepositoryPort;
         this.calculateExchangeRateUseCase = calculateExchangeRateUseCase;
         this.userPointsRepositoryPort = userPointsRepositoryPort;
+        this.orderEventPublisherPort = orderEventPublisherPort;
+        this.orderNotificationPort = orderNotificationPort;
     }
 
     @Override
@@ -66,6 +76,22 @@ public class CreateExchangeOrderService implements CreateExchangeOrderUseCase {
             int pointsEarned = 10;
             userPointsRepositoryPort.updateUserPoints(userEmail, request.getPointsToRedeem(), pointsEarned);
         }
+
+        // ── Publicar evento de dominio → Kafka (auditoría inmutable)
+        OrderCreatedEvent event = new OrderCreatedEvent(
+                savedOrder.getOrderNumber(),
+                savedOrder.getUserEmail(),
+                savedOrder.getOperationType(),
+                savedOrder.getCurrencyOrigin(),
+                savedOrder.getCurrencyDestination(),
+                savedOrder.getAmountSent(),
+                savedOrder.getAmountReceived(),
+                savedOrder.getExchangeRate()
+        );
+        orderEventPublisherPort.publishOrderCreated(event);
+
+        // ── Enviar notificación → RabbitMQ (email simulado al cliente)
+        orderNotificationPort.notifyOrderCreated(event);
 
         return new CreateOrderResponse(
                 savedOrder.getOrderNumber(),

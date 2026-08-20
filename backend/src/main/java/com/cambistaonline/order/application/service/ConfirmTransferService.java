@@ -2,16 +2,26 @@ package com.cambistaonline.order.application.service;
 
 import com.cambistaonline.order.application.dto.OrderSummaryDto;
 import com.cambistaonline.order.application.ports.inbound.ConfirmTransferUseCase;
+import com.cambistaonline.order.application.ports.outbound.OrderEventPublisherPort;
+import com.cambistaonline.order.application.ports.outbound.OrderNotificationPort;
+import com.cambistaonline.order.domain.events.OrderCompletedEvent;
 import com.cambistaonline.order.domain.model.ExchangeOrder;
 import com.cambistaonline.order.domain.ports.ExchangeOrderRepositoryPort;
 
 import java.util.Optional;
 
 public class ConfirmTransferService implements ConfirmTransferUseCase {
-    private final ExchangeOrderRepositoryPort orderRepositoryPort;
 
-    public ConfirmTransferService(ExchangeOrderRepositoryPort orderRepositoryPort) {
+    private final ExchangeOrderRepositoryPort orderRepositoryPort;
+    private final OrderEventPublisherPort orderEventPublisherPort;
+    private final OrderNotificationPort orderNotificationPort;
+
+    public ConfirmTransferService(ExchangeOrderRepositoryPort orderRepositoryPort,
+                                  OrderEventPublisherPort orderEventPublisherPort,
+                                  OrderNotificationPort orderNotificationPort) {
         this.orderRepositoryPort = orderRepositoryPort;
+        this.orderEventPublisherPort = orderEventPublisherPort;
+        this.orderNotificationPort = orderNotificationPort;
     }
 
     @Override
@@ -19,13 +29,30 @@ public class ConfirmTransferService implements ConfirmTransferUseCase {
         Optional<ExchangeOrder> optionalOrder = orderRepositoryPort.findByOrderNumber(orderNumber);
 
         if (optionalOrder.isEmpty()) {
-            throw new IllegalArgumentException("ORDER_NOT_FOUND: Orden de cambio no encontrada para " + orderNumber);
+            throw new IllegalArgumentException(
+                    "ORDER_NOT_FOUND: Orden de cambio no encontrada para " + orderNumber);
         }
 
         ExchangeOrder order = optionalOrder.get();
         order.markAsCompleted();
 
         ExchangeOrder saved = orderRepositoryPort.save(order);
+
+        // ── Publicar evento de dominio → Kafka (auditoría inmutable)
+        OrderCompletedEvent event = new OrderCompletedEvent(
+                saved.getOrderNumber(),
+                saved.getUserEmail(),
+                saved.getOperationType(),
+                saved.getCurrencyOrigin(),
+                saved.getCurrencyDestination(),
+                saved.getAmountSent(),
+                saved.getAmountReceived(),
+                saved.getExchangeRate()
+        );
+        orderEventPublisherPort.publishOrderCompleted(event);
+
+        // ── Enviar notificación → RabbitMQ (email de confirmación simulado)
+        orderNotificationPort.notifyOrderCompleted(event);
 
         return new OrderSummaryDto(
                 saved.getOrderNumber(),

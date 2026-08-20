@@ -5,6 +5,8 @@ import com.cambistaonline.engine.domain.ports.UserPointsRepositoryPort;
 import com.cambistaonline.order.application.ports.inbound.ConfirmTransferUseCase;
 import com.cambistaonline.order.application.ports.inbound.CreateExchangeOrderUseCase;
 import com.cambistaonline.order.application.ports.inbound.GetMyOrdersUseCase;
+import com.cambistaonline.order.application.ports.outbound.OrderEventPublisherPort;
+import com.cambistaonline.order.application.ports.outbound.OrderNotificationPort;
 import com.cambistaonline.order.application.service.ConfirmTransferService;
 import com.cambistaonline.order.application.service.CreateExchangeOrderService;
 import com.cambistaonline.order.application.service.GetMyOrdersService;
@@ -19,8 +21,16 @@ public class OrderBeanConfig {
     public CreateExchangeOrderUseCase createExchangeOrderUseCase(
             ExchangeOrderRepositoryPort orderRepositoryPort,
             CalculateExchangeRateUseCase calculateExchangeRateUseCase,
-            UserPointsRepositoryPort userPointsRepositoryPort) {
-        return new CreateExchangeOrderService(orderRepositoryPort, calculateExchangeRateUseCase, userPointsRepositoryPort);
+            UserPointsRepositoryPort userPointsRepositoryPort,
+            OrderEventPublisherPort orderEventPublisherPort,
+            OrderNotificationPort orderNotificationPort) {
+        return new CreateExchangeOrderService(
+                orderRepositoryPort,
+                calculateExchangeRateUseCase,
+                userPointsRepositoryPort,
+                orderEventPublisherPort,
+                orderNotificationPort
+        );
     }
 
     @Bean
@@ -29,7 +39,14 @@ public class OrderBeanConfig {
     }
 
     @Bean
-    public ConfirmTransferUseCase confirmTransferUseCase(ExchangeOrderRepositoryPort orderRepositoryPort) {
-        return new ConfirmTransferService(orderRepositoryPort);
+    public ConfirmTransferUseCase confirmTransferUseCase(
+            ExchangeOrderRepositoryPort orderRepositoryPort,
+            OrderEventPublisherPort orderEventPublisherPort,
+            OrderNotificationPort orderNotificationPort) {
+        return new ConfirmTransferService(
+                orderRepositoryPort,
+                orderEventPublisherPort,
+                orderNotificationPort
+        );
     }
 }

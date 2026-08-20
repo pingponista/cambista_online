@@ -5,6 +5,8 @@ import com.cambistaonline.auth.application.ports.inbound.GetCurrentUserUseCase;
 import com.cambistaonline.auth.application.ports.inbound.RegisterUserUseCase;
 import com.cambistaonline.auth.application.ports.outbound.JwtTokenPort;
 import com.cambistaonline.auth.application.ports.outbound.PasswordEncoderPort;
+import com.cambistaonline.auth.application.ports.outbound.UserEventPublisherPort;
+import com.cambistaonline.auth.application.ports.outbound.UserNotificationPort;
 import com.cambistaonline.auth.application.ports.outbound.UserPersistencePort;
 import com.cambistaonline.auth.application.service.AuthenticateUserService;
 import com.cambistaonline.auth.application.service.GetCurrentUserService;
@@ -18,9 +20,16 @@ public class BeanConfig {
     @Bean
     public RegisterUserUseCase registerUserUseCase(
             UserPersistencePort userPersistencePort,
-            PasswordEncoderPort passwordEncoderPort
+            PasswordEncoderPort passwordEncoderPort,
+            UserEventPublisherPort userEventPublisherPort,
+            UserNotificationPort userNotificationPort
     ) {
-        return new RegisterUserService(userPersistencePort, passwordEncoderPort);
+        return new RegisterUserService(
+                userPersistencePort,
+                passwordEncoderPort,
+                userEventPublisherPort,
+                userNotificationPort
+        );
     }
 
     @Bean

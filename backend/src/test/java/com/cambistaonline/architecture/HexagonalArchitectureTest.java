@@ -9,6 +9,11 @@ import org.junit.jupiter.api.Test;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
+/**
+ * Suite de pruebas de arquitectura Hexagonal con ArchUnit.
+ * Valida que el dominio y la capa de aplicación estén completamente
+ * desacoplados de la infraestructura, adaptadores, Kafka y RabbitMQ.
+ */
 public class HexagonalArchitectureTest {
 
     private JavaClasses importedClasses;
@@ -20,22 +25,66 @@ public class HexagonalArchitectureTest {
                 .importPackages("com.cambistaonline");
     }
 
+    /**
+     * El dominio (entidades, eventos, value objects, ports) NO debe depender
+     * de infraestructura, adaptadores ni frameworks de Spring, Kafka o RabbitMQ.
+     */
     @Test
-    void domainModelAndStrategyShouldNotDependOnOuterInfrastructureOrFrameworks() {
+    void domainShouldNotDependOnOuterLayers() {
         ArchRule rule = noClasses()
                 .that().resideInAPackage("..domain..")
                 .should().dependOnClassesThat()
-                .resideInAnyPackage("..infrastructure..", "..adapters..", "org.springframework..");
+                .resideInAnyPackage(
+                        "..infrastructure..",
+                        "..adapters..",
+                        "org.springframework..",
+                        "org.apache.kafka..",
+                        "org.springframework.kafka..",
+                        "org.springframework.amqp..",
+                        "com.rabbitmq.."
+                );
 
         rule.check(importedClasses);
     }
 
+    /**
+     * La capa de aplicación (services, use cases, ports) NO debe depender
+     * de la infraestructura concreta ni de los adaptadores.
+     * Sí puede depender de interfaces de sus propios puertos (ports).
+     */
     @Test
-    void applicationServicesAndPortsShouldNotDependOnInfrastructureAdapters() {
+    void applicationShouldNotDependOnInfrastructureOrAdapters() {
         ArchRule rule = noClasses()
                 .that().resideInAPackage("..application..")
                 .should().dependOnClassesThat()
-                .resideInAnyPackage("..infrastructure..", "..adapters..");
+                .resideInAnyPackage(
+                        "..infrastructure..",
+                        "..adapters..",
+                        "org.apache.kafka..",
+                        "org.springframework.kafka..",
+                        "org.springframework.amqp..",
+                        "com.rabbitmq.."
+                );
+
+        rule.check(importedClasses);
+    }
+
+    /**
+     * Los adaptadores de Kafka y RabbitMQ deben vivir exclusivamente en
+     * el paquete adapters, no en domain ni application.
+     */
+    @Test
+    void kafkaAndRabbitMQShouldOnlyLiveInAdaptersOrInfrastructure() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage("..domain..")
+                .or().resideInAPackage("..application..")
+                .should().dependOnClassesThat()
+                .resideInAnyPackage(
+                        "org.apache.kafka..",
+                        "org.springframework.kafka..",
+                        "org.springframework.amqp..",
+                        "com.rabbitmq.."
+                );
 
         rule.check(importedClasses);
     }
