@@ -22,9 +22,10 @@ En esta versión (`feature/messaging`), el sistema evoluciona a una **Arquitectu
 3. [Detalle de Cambios Realizados](#-3-detalle-de-cambios-realizados)
 4. [Beneficios de esta Nueva Versión](#-4-beneficios-de-esta-nueva-versión)
 5. [Dificultades y Desafíos Técnicos](#-5-dificultades-y-desafíos-técnicos)
-6. [Guía para Levantar el Proyecto en Local](#-6-guía-para-levantar-el-proyecto-en-local)
-7. [Demostración y Verificación del Flujo de Mensajería](#-7-demostración-y-verificación-del-flujo-de-mensajería)
-8. [Endpoints de la API](#-8-endpoints-de-la-api)
+6. [Flujo de una Transacción con Kafka: Cambio de Soles / Dólares](#-6-flujo-de-una-transacción-con-kafka-cambio-de-soles--dólares)
+7. [Guía para Levantar el Proyecto en Local](#-7-guía-para-levantar-el-proyecto-en-local)
+8. [Demostración y Verificación del Flujo de Mensajería](#-8-demostración-y-verificación-del-flujo-de-mensajería)
+9. [Endpoints de la API](#-9-endpoints-de-la-api)
 
 ---
 
@@ -150,7 +151,76 @@ Durante el desarrollo e integración de esta versión se resolvieron los siguien
 
 ---
 
-## 💻 6. Guía para Levantar el Proyecto en Local
+## 🪙 6. Flujo de una Transacción con Kafka: Cambio de Soles / Dólares
+
+En el ciclo de vida de una operación de cambio de divisas en **CambistaOnline**, Apache Kafka interviene en **dos momentos clave** para garantizar trazabilidad y auditoría inmutable:
+
+```
+Usuario (Web / App)
+    │
+    │  1. Solicita cambiar: 100 USD ➔ 375.50 PEN
+    ▼
+[ExchangeOrderController] (HTTP POST /api/v1/orders)
+    │
+    ▼
+[CreateExchangeOrderService] (Caso de Uso)
+    ├── 1. Calcula tipo de cambio con reglas SBS y beneficios
+    ├── 2. Guarda la orden en MongoDB Atlas (Estado: PENDING_PAYMENT)
+    │
+    └── 3. 🎯 MOMENTO 1 DE KAFKA: Publica "OrderCreatedEvent"
+             │
+             ▼
+        [KafkaOrderEventPublisherAdapter]
+             │ (send to broker)
+             ▼
+        🪵 Tópico Kafka: 'cambista.orders.created'
+             │ (partición por orderNumber)
+             ▼
+        [KafkaOrderEventConsumer] ──▶ Registra Log de Auditoría Inmutable
+```
+
+Posteriormente, cuando el usuario realiza la transferencia bancaria y se valida la recepción de fondos:
+
+```
+Operador / Sistema
+    │
+    │  2. Confirma recepción de fondos (HTTP POST /api/v1/orders/confirm)
+    ▼
+[ConfirmTransferService] (Caso de Uso)
+    ├── 1. Actualiza estado a COMPLETED en MongoDB Atlas
+    │
+    └── 2. 🎯 MOMENTO 2 DE KAFKA: Publica "OrderCompletedEvent"
+             │
+             ▼
+        [KafkaOrderEventPublisherAdapter]
+             │ (send to broker)
+             ▼
+        🪵 Tópico Kafka: 'cambista.orders.completed'
+             │
+             ▼
+        [KafkaOrderEventConsumer] ──▶ Registra Cierre Financiero Inmutable
+```
+
+### 📌 Momento 1: Creación de la Orden (`cambista.orders.created`)
+1. El usuario envía la solicitud de cambio de moneda.
+2. `CreateExchangeOrderService` calcula la tasa, guarda la orden en MongoDB Atlas con estado `PENDING_PAYMENT` e instancia el evento de dominio `OrderCreatedEvent`.
+3. `KafkaOrderEventPublisherAdapter` publica el evento en el tópico `cambista.orders.created`.
+4. `KafkaOrderEventConsumer` procesa el evento y deja constancia inalterable de la orden en el log de auditoría.
+
+### 📌 Momento 2: Confirmación y Liquidación (`cambista.orders.completed`)
+1. El usuario transfiere los fondos desde su banco y se confirma la recepción.
+2. `ConfirmTransferService` actualiza el estado a `COMPLETED` en MongoDB Atlas y emite `OrderCompletedEvent`.
+3. `KafkaOrderEventPublisherAdapter` publica el evento en el tópico `cambista.orders.completed`.
+4. `KafkaOrderEventConsumer` certifica el cierre y ejecución financiera de la transacción.
+
+### 💡 ¿Por qué Kafka en este momento financiero?
+- **Auditoría inmutable (Compliance SBS)**: MongoDB almacena el estado actual mutable; Kafka conserva la historia cronológica inalterable de todos los eventos.
+- **Desacoplamiento asíncrono**: La API REST responde al cliente en milisegundos (`201 Created`), mientras los procesos analíticos y de auditoría se ejecutan en segundo plano.
+- **Preparado para Microservicios**: Si a futuro se integran servicios de Prevención de Lavado de Dinero (PLD), Contabilidad o Dashboards en tiempo real, solo necesitarán suscribirse a estos tópicos sin sobrecargar la base de datos operativa.
+
+---
+
+## 💻 7. Guía para Levantar el Proyecto en Local
 
 ### 📋 Requisitos Previos:
 - **[Docker Desktop](https://www.docker.com/products/docker-desktop/)** instalado y en ejecución.
@@ -218,14 +288,14 @@ Todos los contenedores deben figurar en estado `running` (Up).
 
 ---
 
-## 🖥️ 7. Demostración y Verificación del Flujo de Mensajería
+## 🖥️ 8. Demostración y Verificación del Flujo de Mensajería
 
 ### 🌐 URLs de Acceso:
 - **Frontend Web App**: 👉 [http://localhost:3000](http://localhost:3000)
 - **Backend API & Swagger UI**: 👉 [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 - **RabbitMQ Management Dashboard**: 👉 [http://localhost:15672](http://localhost:15672)
   - **Usuario**: `cambista`
-  - **Contraseña**: `cambista123`
+  - **Contraseña**: `tu_password_rabbitmq`
 
 ---
 
@@ -279,7 +349,7 @@ docker compose down
 
 ---
 
-## 📡 8. Endpoints de la API
+## 📡 9. Endpoints de la API
 
 | Módulo | Método | Endpoint | Descripción |
 | :--- | :--- | :--- | :--- |
@@ -290,3 +360,4 @@ docker compose down
 | **Orders** | `POST` | `/api/v1/orders` | Crea orden de cambio (emite evento a Kafka y RabbitMQ). |
 | **Orders** | `GET` | `/api/v1/orders` | Historial de órdenes de cambio del usuario. |
 | **Orders** | `POST` | `/api/v1/orders/confirm` | Confirma pago (emite evento de orden completada). |
+
