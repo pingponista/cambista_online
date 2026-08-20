@@ -174,19 +174,19 @@ git checkout feature/messaging
 Crea o edita el archivo **`backend/.env`** en base al siguiente ejemplo:
 
 ```env
-# Conexión a MongoDB Atlas
-SPRING_DATA_MONGODB_URI=mongodb+srv://username:password@cambistaonilne.vgbiyuj.mongodb.net/sample_mflix?retryWrites=true&w=majority&appName=cambistaOnilne
+# Conexión a MongoDB Atlas (Reemplazar con tus credenciales)
+SPRING_DATA_MONGODB_URI=mongodb+srv://username:password@your-cluster.mongodb.net/sample_mflix?retryWrites=true&w=majority
 
-# Seguridad JWT
-JWT_SECRET=404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+# Seguridad JWT (Clave secreta segura de al menos 256 bits)
+JWT_SECRET=tu_jwt_secret_seguro_de_al_menos_256_bits_aqui
 JWT_EXPIRATION_MS=3600000
 
-# Brokers de Mensajería (nombres de servicios dentro de Docker)
+# Brokers de Mensajería (Nombres de servicio en red Docker)
 KAFKA_BOOTSTRAP_SERVERS=kafka:29092
 RABBITMQ_HOST=rabbitmq
 RABBITMQ_PORT=5672
 RABBITMQ_USERNAME=cambista
-RABBITMQ_PASSWORD=cambista123
+RABBITMQ_PASSWORD=tu_password_rabbitmq
 ```
 
 ---
