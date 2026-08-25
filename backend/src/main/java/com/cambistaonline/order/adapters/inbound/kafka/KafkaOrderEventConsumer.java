@@ -10,11 +10,6 @@ import org.springframework.stereotype.Component;
 /**
  * Adaptador de entrada (Inbound Adapter) que escucha eventos de orden en Kafka.
  * Simula el servicio de auditoría: registra en el log cada evento recibido.
- *
- * En un sistema real, este Consumer podría:
- *  - Persistir en una colección MongoDB "audit_log"
- *  - Enviar métricas a un sistema de monitoreo
- *  - Alimentar un dashboard en tiempo real con WebSockets
  */
 @Component
 public class KafkaOrderEventConsumer {
@@ -23,12 +18,11 @@ public class KafkaOrderEventConsumer {
 
     /**
      * Escucha el tópico cambista.orders.created.
-     * Kafka garantiza que este mensaje se procesa al menos una vez.
      */
     @KafkaListener(
         topics = "cambista.orders.created",
         groupId = "cambista-group",
-        containerFactory = "kafkaListenerContainerFactory"
+        containerFactory = "orderCreatedContainerFactory"
     )
     public void onOrderCreated(OrderCreatedEvent event) {
         log.info("════════════════════════════════════════════════════");
@@ -49,7 +43,7 @@ public class KafkaOrderEventConsumer {
     @KafkaListener(
         topics = "cambista.orders.completed",
         groupId = "cambista-group",
-        containerFactory = "kafkaListenerContainerFactory"
+        containerFactory = "orderCompletedContainerFactory"
     )
     public void onOrderCompleted(OrderCompletedEvent event) {
         log.info("════════════════════════════════════════════════════");

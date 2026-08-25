@@ -18,7 +18,7 @@ public class KafkaUserEventConsumer {
     @KafkaListener(
         topics = "cambista.users.registered",
         groupId = "cambista-group",
-        containerFactory = "kafkaListenerContainerFactory"
+        containerFactory = "userRegisteredContainerFactory"
     )
     public void onUserRegistered(UserRegisteredEvent event) {
         log.info("════════════════════════════════════════════════════");

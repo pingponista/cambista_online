@@ -8,20 +8,23 @@ import java.time.LocalDateTime;
 
 /**
  * Evento de dominio inmutable publicado cuando se crea una nueva orden de cambio.
- * Es un POJO puro: no tiene anotaciones de Spring, Kafka ni RabbitMQ.
- * El dominio sabe QUÉ pasó; la infraestructura decide cómo publicarlo.
+ * Es un POJO puro sin dependencias de frameworks.
  */
 public class OrderCreatedEvent {
 
-    private final String orderNumber;
-    private final String userEmail;
-    private final OperationType operationType;
-    private final CurrencyType currencyOrigin;
-    private final CurrencyType currencyDestination;
-    private final BigDecimal amountSent;
-    private final BigDecimal amountReceived;
-    private final BigDecimal exchangeRate;
-    private final LocalDateTime occurredAt;
+    private String orderNumber;
+    private String userEmail;
+    private OperationType operationType;
+    private CurrencyType currencyOrigin;
+    private CurrencyType currencyDestination;
+    private BigDecimal amountSent;
+    private BigDecimal amountReceived;
+    private BigDecimal exchangeRate;
+    private LocalDateTime occurredAt;
+
+    public OrderCreatedEvent() {
+        this.occurredAt = LocalDateTime.now();
+    }
 
     public OrderCreatedEvent(String orderNumber, String userEmail,
                              OperationType operationType,
@@ -40,12 +43,29 @@ public class OrderCreatedEvent {
     }
 
     public String getOrderNumber()             { return orderNumber; }
+    public void setOrderNumber(String orderNumber) { this.orderNumber = orderNumber; }
+
     public String getUserEmail()               { return userEmail; }
+    public void setUserEmail(String userEmail) { this.userEmail = userEmail; }
+
     public OperationType getOperationType()    { return operationType; }
+    public void setOperationType(OperationType operationType) { this.operationType = operationType; }
+
     public CurrencyType getCurrencyOrigin()    { return currencyOrigin; }
+    public void setCurrencyOrigin(CurrencyType currencyOrigin) { this.currencyOrigin = currencyOrigin; }
+
     public CurrencyType getCurrencyDestination(){ return currencyDestination; }
+    public void setCurrencyDestination(CurrencyType currencyDestination) { this.currencyDestination = currencyDestination; }
+
     public BigDecimal getAmountSent()          { return amountSent; }
+    public void setAmountSent(BigDecimal amountSent) { this.amountSent = amountSent; }
+
     public BigDecimal getAmountReceived()      { return amountReceived; }
+    public void setAmountReceived(BigDecimal amountReceived) { this.amountReceived = amountReceived; }
+
     public BigDecimal getExchangeRate()        { return exchangeRate; }
+    public void setExchangeRate(BigDecimal exchangeRate) { this.exchangeRate = exchangeRate; }
+
     public LocalDateTime getOccurredAt()       { return occurredAt; }
+    public void setOccurredAt(LocalDateTime occurredAt) { this.occurredAt = occurredAt; }
 }
