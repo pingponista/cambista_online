@@ -15,10 +15,16 @@ public class UserResponseDto {
     private String role;
     private String status;
     private LocalDateTime createdAt;
+    private boolean mfaEnabled;
+    private String authProvider;
 
     public UserResponseDto() {}
 
     public UserResponseDto(UUID id, String email, String firstName, String lastName, String dni, String companyName, String ruc, String legalRepresentativeName, String role, String status, LocalDateTime createdAt) {
+        this(id, email, firstName, lastName, dni, companyName, ruc, legalRepresentativeName, role, status, createdAt, false, "LOCAL");
+    }
+
+    public UserResponseDto(UUID id, String email, String firstName, String lastName, String dni, String companyName, String ruc, String legalRepresentativeName, String role, String status, LocalDateTime createdAt, boolean mfaEnabled, String authProvider) {
         this.id = id;
         this.email = email;
         this.firstName = firstName;
@@ -30,6 +36,8 @@ public class UserResponseDto {
         this.role = role;
         this.status = status;
         this.createdAt = createdAt;
+        this.mfaEnabled = mfaEnabled;
+        this.authProvider = authProvider;
     }
 
     public UUID getId() { return id; }
@@ -43,4 +51,6 @@ public class UserResponseDto {
     public String getRole() { return role; }
     public String getStatus() { return status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public boolean isMfaEnabled() { return mfaEnabled; }
+    public String getAuthProvider() { return authProvider; }
 }

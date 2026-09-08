@@ -7,4 +7,7 @@ public interface JwtTokenPort {
     String extractUsername(String token);
     boolean validateToken(String token);
     long getExpirationSeconds();
+
+    String generateMfaSessionToken(String email);
+    String validateMfaSessionToken(String token);
 }

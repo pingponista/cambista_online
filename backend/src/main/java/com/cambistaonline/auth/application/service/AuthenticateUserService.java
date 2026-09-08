@@ -33,6 +33,12 @@ public class AuthenticateUserService implements AuthenticateUserUseCase {
             throw new InvalidCredentialsException("Credenciales de acceso inválidas.");
         }
 
+        // Si el usuario tiene MFA activado, requerir segundo factor
+        if (user.isMfaEnabled()) {
+            String mfaSessionToken = jwtTokenPort.generateMfaSessionToken(user.getEmail().getValue());
+            return AuthTokenResponseDto.mfaRequired(mfaSessionToken);
+        }
+
         String jwtToken = jwtTokenPort.generateToken(user);
         long expiresIn = jwtTokenPort.getExpirationSeconds();
 

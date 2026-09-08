@@ -1,6 +1,7 @@
 package com.cambistaonline.auth.adapters.outbound.mongodb;
 
 import com.cambistaonline.auth.application.ports.outbound.UserPersistencePort;
+import com.cambistaonline.auth.domain.model.AuthProvider;
 import com.cambistaonline.auth.domain.model.User;
 import com.cambistaonline.auth.domain.model.UserStatus;
 import com.cambistaonline.auth.domain.ports.UserRepositoryPort;
@@ -72,7 +73,11 @@ public class MongoUserPersistenceAdapter implements UserRepositoryPort, UserPers
                 domain.getRole() != null ? domain.getRole() : "N",
                 domain.getStatus() != null ? domain.getStatus().name() : UserStatus.ACTIVE.name(),
                 createdAt,
-                updatedAt
+                updatedAt,
+                domain.isMfaEnabled(),
+                domain.getMfaSecret(),
+                domain.getAuthProvider() != null ? domain.getAuthProvider().name() : "LOCAL",
+                domain.getProviderId()
         );
     }
 
@@ -82,7 +87,7 @@ public class MongoUserPersistenceAdapter implements UserRepositoryPort, UserPers
         return User.builder()
                 .id(id)
                 .email(new Email(doc.getEmail()))
-                .password(Password.fromHash(doc.getPassword()))
+                .password(doc.getPassword() != null ? Password.fromHash(doc.getPassword()) : Password.fromHash(""))
                 .firstName(doc.getFirstName())
                 .lastName(doc.getLastName())
                 .dni(doc.getDni() != null && !doc.getDni().isBlank() ? new Dni(doc.getDni()) : null)
@@ -93,32 +98,33 @@ public class MongoUserPersistenceAdapter implements UserRepositoryPort, UserPers
                 .status(doc.getStatus() != null ? UserStatus.valueOf(doc.getStatus()) : UserStatus.ACTIVE)
                 .createdAt(parseDateTime(doc.getCreatedAt()))
                 .updatedAt(parseDateTime(doc.getUpdatedAt()))
+                .mfaEnabled(Boolean.TRUE.equals(doc.getMfaEnabled()))
+                .mfaSecret(doc.getMfaSecret())
+                .authProvider(doc.getAuthProvider() != null ? AuthProvider.fromString(doc.getAuthProvider()) : AuthProvider.LOCAL)
+                .providerId(doc.getProviderId())
                 .build();
     }
 
     private UUID parseUUID(String str) {
         try {
             return UUID.fromString(str);
-        } catch (Exception e) {
-            return UUID.randomUUID();
+        } catch (IllegalArgumentException e) {
+            return UUID.nameUUIDFromBytes(str.getBytes());
         }
     }
 
-    private LocalDateTime parseDateTime(Object input) {
-        if (input == null) return LocalDateTime.now();
-        if (input instanceof LocalDateTime ldt) return ldt;
-        if (input instanceof Date date) return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-        String str = input.toString().trim();
-        try {
-            if (str.contains(" ")) {
-                str = str.replace(" ", "T");
+    private LocalDateTime parseDateTime(Object obj) {
+        if (obj == null) return LocalDateTime.now();
+        if (obj instanceof LocalDateTime ldt) return ldt;
+        if (obj instanceof Date d) return d.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        if (obj instanceof OffsetDateTime odt) return odt.toLocalDateTime();
+        if (obj instanceof String s) {
+            try {
+                return LocalDateTime.parse(s);
+            } catch (Exception e) {
+                return LocalDateTime.now();
             }
-            if (str.contains("+")) {
-                return OffsetDateTime.parse(str).toLocalDateTime();
-            }
-            return LocalDateTime.parse(str);
-        } catch (Exception e) {
-            return LocalDateTime.now();
         }
+        return LocalDateTime.now();
     }
 }

@@ -6,6 +6,7 @@ import { BankAccountsManager } from './BankAccountsManager';
 import { RefreshCw, History, CreditCard, User, PlusCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { exchangeService } from '../../services/exchangeService';
+import { MfaSettingsCard } from '../auth/MfaSettingsCard';
 import styles from './dashboard.module.css';
 
 export const UserDashboard = () => {
@@ -161,14 +162,17 @@ export const UserDashboard = () => {
         {activeTab === 'cuentas' && <BankAccountsManager />}
 
         {activeTab === 'perfil' && (
-          <Card>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '1rem' }}>Información de mi Perfil</h3>
-            <div style={{ lineHeight: '1.8', fontSize: '0.95rem' }}>
-              <div><strong>Email:</strong> {user?.email || 'usuario@cambistaonline.pe'}</div>
-              <div><strong>Tipo de Perfil:</strong> {user?.profileType || 'Persona Natural'}</div>
-              <div><strong>Estado de Identidad:</strong> <span style={{ color: 'var(--color-accent-green-hover)', fontWeight: 700 }}>Verificado por la SBS</span></div>
-            </div>
-          </Card>
+          <div>
+            <Card>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '1rem' }}>Información de mi Perfil</h3>
+              <div style={{ lineHeight: '1.8', fontSize: '0.95rem' }}>
+                <div><strong>Email:</strong> {user?.email || 'usuario@cambistaonline.pe'}</div>
+                <div><strong>Tipo de Perfil:</strong> {user?.profileType || 'Persona Natural'}</div>
+                <div><strong>Estado de Identidad:</strong> <span style={{ color: 'var(--color-accent-green-hover)', fontWeight: 700 }}>Verificado por la SBS</span></div>
+              </div>
+            </Card>
+            <MfaSettingsCard />
+          </div>
         )}
       </main>
     </div>

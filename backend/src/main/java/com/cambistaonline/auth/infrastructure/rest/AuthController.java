@@ -66,6 +66,10 @@ public class AuthController {
         );
 
         AuthTokenResponseDto tokenDto = authenticateUserUseCase.execute(command);
+        if (tokenDto.isMfaRequired()) {
+            return ResponseEntity.ok(LoginResponse.mfaRequired(tokenDto.getMfaSessionToken()));
+        }
+
         LoginResponse response = new LoginResponse(
                 tokenDto.getAccessToken(),
                 tokenDto.getTokenType(),
@@ -92,7 +96,9 @@ public class AuthController {
                 userDto.getLegalRepresentativeName(),
                 userDto.getRole(),
                 userDto.getStatus(),
-                userDto.getCreatedAt()
+                userDto.getCreatedAt(),
+                userDto.isMfaEnabled(),
+                userDto.getAuthProvider()
         );
 
         return ResponseEntity.ok(ApiResponse.success("Perfil obtenido correctamente", response));

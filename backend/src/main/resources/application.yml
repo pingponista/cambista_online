@@ -65,6 +65,17 @@ jwt:
   secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
   expiration-ms: ${JWT_EXPIRATION_MS:3600000}
 
+oauth:
+  google:
+    client-id: ${OAUTH_GOOGLE_CLIENT_ID:google-client-id-placeholder}
+    client-secret: ${OAUTH_GOOGLE_CLIENT_SECRET:google-client-secret-placeholder}
+  github:
+    client-id: ${OAUTH_GITHUB_CLIENT_ID:github-client-id-placeholder}
+    client-secret: ${OAUTH_GITHUB_CLIENT_SECRET:github-client-secret-placeholder}
+  facebook:
+    client-id: ${OAUTH_FACEBOOK_CLIENT_ID:facebook-client-id-placeholder}
+    client-secret: ${OAUTH_FACEBOOK_CLIENT_SECRET:facebook-client-secret-placeholder}
+
 springdoc:
   api-docs:
     path: /v3/api-docs

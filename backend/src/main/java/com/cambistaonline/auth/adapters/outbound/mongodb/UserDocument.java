@@ -49,9 +49,25 @@ public class UserDocument {
     @Field("updated_at")
     private Object updatedAt;
 
+    @Field("mfa_enabled")
+    private Boolean mfaEnabled;
+
+    @Field("mfa_secret")
+    private String mfaSecret;
+
+    @Field("auth_provider")
+    private String authProvider;
+
+    @Field("provider_id")
+    private String providerId;
+
     public UserDocument() {}
 
     public UserDocument(String mongoId, String id, String email, String password, String firstName, String lastName, String dni, String companyName, String ruc, String legalRepresentativeName, String role, String status, Object createdAt, Object updatedAt) {
+        this(mongoId, id, email, password, firstName, lastName, dni, companyName, ruc, legalRepresentativeName, role, status, createdAt, updatedAt, false, null, "LOCAL", null);
+    }
+
+    public UserDocument(String mongoId, String id, String email, String password, String firstName, String lastName, String dni, String companyName, String ruc, String legalRepresentativeName, String role, String status, Object createdAt, Object updatedAt, Boolean mfaEnabled, String mfaSecret, String authProvider, String providerId) {
         this.mongoId = mongoId;
         this.id = id;
         this.email = email;
@@ -66,6 +82,10 @@ public class UserDocument {
         this.status = status;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.mfaEnabled = mfaEnabled;
+        this.mfaSecret = mfaSecret;
+        this.authProvider = authProvider;
+        this.providerId = providerId;
     }
 
     public String getMongoId() { return mongoId; }
@@ -109,4 +129,16 @@ public class UserDocument {
 
     public Object getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Object updatedAt) { this.updatedAt = updatedAt; }
+
+    public Boolean getMfaEnabled() { return mfaEnabled; }
+    public void setMfaEnabled(Boolean mfaEnabled) { this.mfaEnabled = mfaEnabled; }
+
+    public String getMfaSecret() { return mfaSecret; }
+    public void setMfaSecret(String mfaSecret) { this.mfaSecret = mfaSecret; }
+
+    public String getAuthProvider() { return authProvider; }
+    public void setAuthProvider(String authProvider) { this.authProvider = authProvider; }
+
+    public String getProviderId() { return providerId; }
+    public void setProviderId(String providerId) { this.providerId = providerId; }
 }

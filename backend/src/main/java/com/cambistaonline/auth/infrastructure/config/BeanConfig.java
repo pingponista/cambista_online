@@ -1,18 +1,12 @@
 package com.cambistaonline.auth.infrastructure.config;
 
-import com.cambistaonline.auth.application.ports.inbound.AuthenticateUserUseCase;
-import com.cambistaonline.auth.application.ports.inbound.GetCurrentUserUseCase;
-import com.cambistaonline.auth.application.ports.inbound.RegisterUserUseCase;
-import com.cambistaonline.auth.application.ports.outbound.JwtTokenPort;
-import com.cambistaonline.auth.application.ports.outbound.PasswordEncoderPort;
-import com.cambistaonline.auth.application.ports.outbound.UserEventPublisherPort;
-import com.cambistaonline.auth.application.ports.outbound.UserNotificationPort;
-import com.cambistaonline.auth.application.ports.outbound.UserPersistencePort;
-import com.cambistaonline.auth.application.service.AuthenticateUserService;
-import com.cambistaonline.auth.application.service.GetCurrentUserService;
-import com.cambistaonline.auth.application.service.RegisterUserService;
+import com.cambistaonline.auth.application.ports.inbound.*;
+import com.cambistaonline.auth.application.ports.outbound.*;
+import com.cambistaonline.auth.application.service.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
 
 @Configuration
 public class BeanConfig {
@@ -46,5 +40,55 @@ public class BeanConfig {
             UserPersistencePort userPersistencePort
     ) {
         return new GetCurrentUserService(userPersistencePort);
+    }
+
+    @Bean
+    public AuthenticateOAuthUserUseCase authenticateOAuthUserUseCase(
+            List<OAuthClientPort> oauthClients,
+            UserPersistencePort userPersistencePort,
+            JwtTokenPort jwtTokenPort,
+            UserEventPublisherPort userEventPublisherPort,
+            UserNotificationPort userNotificationPort
+    ) {
+        return new AuthenticateOAuthUserService(
+                oauthClients,
+                userPersistencePort,
+                jwtTokenPort,
+                userEventPublisherPort,
+                userNotificationPort
+        );
+    }
+
+    @Bean
+    public SetupMfaUseCase setupMfaUseCase(
+            UserPersistencePort userPersistencePort,
+            TotpPort totpPort
+    ) {
+        return new SetupMfaService(userPersistencePort, totpPort);
+    }
+
+    @Bean
+    public EnableMfaUseCase enableMfaUseCase(
+            UserPersistencePort userPersistencePort,
+            TotpPort totpPort
+    ) {
+        return new EnableMfaService(userPersistencePort, totpPort);
+    }
+
+    @Bean
+    public VerifyMfaUseCase verifyMfaUseCase(
+            UserPersistencePort userPersistencePort,
+            TotpPort totpPort,
+            JwtTokenPort jwtTokenPort
+    ) {
+        return new VerifyMfaService(userPersistencePort, totpPort, jwtTokenPort);
+    }
+
+    @Bean
+    public DisableMfaUseCase disableMfaUseCase(
+            UserPersistencePort userPersistencePort,
+            TotpPort totpPort
+    ) {
+        return new DisableMfaService(userPersistencePort, totpPort);
     }
 }

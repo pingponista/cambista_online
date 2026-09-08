@@ -18,7 +18,9 @@ public class UserApplicationMapper {
                 user.getLegalRepresentativeName(),
                 user.getRole(),
                 user.getStatus() != null ? user.getStatus().name() : null,
-                user.getCreatedAt()
+                user.getCreatedAt(),
+                user.isMfaEnabled(),
+                user.getAuthProvider() != null ? user.getAuthProvider().name() : "LOCAL"
         );
     }
 }

@@ -5,48 +5,101 @@ export const DEMO_CREDENTIALS = {
   password: 'demo1234',
 };
 
+const handleAuthSuccess = async (token) => {
+  localStorage.setItem('cambista_jwt_token', token);
+
+  let userProfile = null;
+  try {
+    const meResponse = await apiAuth.getMe();
+    userProfile = meResponse.data;
+  } catch (meErr) {
+    console.warn('Could not fetch user profile from /me, using token data', meErr);
+  }
+
+  const name = userProfile
+    ? (userProfile.firstName ? `${userProfile.firstName} ${userProfile.lastName}` : (userProfile.companyName || userProfile.email))
+    : 'Usuario';
+
+  return {
+    token: token,
+    userId: userProfile ? userProfile.id : 'user-id',
+    email: userProfile ? userProfile.email : '',
+    fullNameOrCompany: name,
+    profileType: userProfile ? (userProfile.role === 'J' ? 'JURIDICA' : 'NATURAL') : 'NATURAL',
+    mfaEnabled: userProfile ? userProfile.mfaEnabled : false,
+    authProvider: userProfile ? userProfile.authProvider : 'LOCAL',
+  };
+};
+
 export const authService = {
   login: async (email, password) => {
     try {
-      // 1. Llamada REST al backend Spring Boot /api/v1/auth/login para obtener JWT real
       const tokenResponse = await apiAuth.login(email, password);
-      const token = tokenResponse.accessToken;
 
-      // Almacenamos el JWT real en localStorage para interceptores Axios
-      localStorage.setItem('cambista_jwt_token', token);
-
-      // 2. Llamada REST al backend /api/v1/auth/me para obtener datos del perfil
-      let userProfile = null;
-      try {
-        const meResponse = await apiAuth.getMe();
-        userProfile = meResponse.data;
-      } catch (meErr) {
-        console.warn('Could not fetch user profile from /me, using token data', meErr);
+      // Si el backend solicita segundo factor MFA
+      if (tokenResponse.mfaRequired) {
+        return {
+          mfaRequired: true,
+          mfaSessionToken: tokenResponse.mfaSessionToken,
+          email: email,
+        };
       }
 
-      const name = userProfile
-        ? (userProfile.firstName ? `${userProfile.firstName} ${userProfile.lastName}` : (userProfile.companyName || email))
-        : email;
-
-      return {
-        token: token,
-        userId: userProfile ? userProfile.id : 'user-id',
-        email: email,
-        fullNameOrCompany: name || email,
-        profileType: userProfile ? (userProfile.role === 'J' ? 'JURIDICA' : 'NATURAL') : 'NATURAL',
-      };
+      return await handleAuthSuccess(tokenResponse.accessToken);
     } catch (err) {
       console.error('Error during login:', err);
       throw err;
     }
   },
 
+  loginOAuth: async (provider, code, redirectUri) => {
+    try {
+      const tokenResponse = await apiAuth.loginOAuth(provider, code, redirectUri);
+
+      // Si el backend solicita segundo factor MFA
+      if (tokenResponse.mfaRequired) {
+        return {
+          mfaRequired: true,
+          mfaSessionToken: tokenResponse.mfaSessionToken,
+          provider: provider,
+        };
+      }
+
+      return await handleAuthSuccess(tokenResponse.accessToken);
+    } catch (err) {
+      console.error('Error during OAuth login:', err);
+      throw err;
+    }
+  },
+
+  verifyMfa: async (mfaSessionToken, code) => {
+    try {
+      const tokenResponse = await apiAuth.verifyMfa(mfaSessionToken, code);
+      return await handleAuthSuccess(tokenResponse.accessToken);
+    } catch (err) {
+      console.error('Error during MFA verification:', err);
+      throw err;
+    }
+  },
+
+  setupMfa: async () => {
+    const res = await apiAuth.setupMfa();
+    return res.data; // { secret, qrCodeUri, manualKey }
+  },
+
+  enableMfa: async (code) => {
+    const res = await apiAuth.enableMfa(code);
+    return res.data;
+  },
+
+  disableMfa: async (code) => {
+    const res = await apiAuth.disableMfa(code);
+    return res.data;
+  },
+
   register: async (registerData) => {
     try {
-      // 1. Llamada REST al backend Spring Boot /api/v1/auth/register
       await apiAuth.register(registerData);
-
-      // 2. Inicia sesión automáticamente tras registrarse obteniendo JWT real
       return await authService.login(registerData.email, registerData.password);
     } catch (err) {
       console.error('Error during registration:', err);
@@ -54,3 +107,5 @@ export const authService = {
     }
   },
 };
+
+export default authService;

@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../../services/authService';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useFxStore } from '../../store/useFxStore';
+import { SocialAuthButtons } from './SocialAuthButtons';
 import styles from './auth.module.css';
 
 export const RegisterForm = () => {
@@ -181,7 +182,10 @@ export const RegisterForm = () => {
         </button>
       </form>
 
-      <p style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+      {/* 3 Redes Sociales: Google, GitHub, Facebook */}
+      <SocialAuthButtons onError={(msg) => setError(msg)} />
+
+      <p style={{ marginTop: '1rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
         ¿Ya tienes cuenta? <Link to="/login" style={{ color: 'var(--primary-500)', fontWeight: '600' }}>Inicia sesión</Link>
       </p>
     </div>

@@ -31,6 +31,12 @@ public class Password {
         return pass;
     }
 
+    public static Password oauthDummy() {
+        Password pass = new Password();
+        pass.setHash("OAUTH_EXTERNAL_PROVIDER");
+        return pass;
+    }
+
     private Password() {
         this.value = null;
     }

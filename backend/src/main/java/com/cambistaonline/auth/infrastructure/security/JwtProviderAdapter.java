@@ -20,6 +20,7 @@ public class JwtProviderAdapter implements JwtTokenPort, com.cambistaonline.auth
 
     private final SecretKey key;
     private final long expirationMs;
+    private final long mfaSessionExpirationMs = 300_000; // 5 minutos para resolver el desafío MFA
 
     public JwtProviderAdapter(
             @Value("${jwt.secret:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}") String secretHex,
@@ -52,6 +53,41 @@ public class JwtProviderAdapter implements JwtTokenPort, com.cambistaonline.auth
     }
 
     @Override
+    public String generateMfaSessionToken(String email) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("email", email);
+        claims.put("mfa_pending", true);
+
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + mfaSessionExpirationMs);
+
+        return Jwts.builder()
+                .claims(claims)
+                .subject(email)
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(key)
+                .compact();
+    }
+
+    @Override
+    public String validateMfaSessionToken(String token) {
+        try {
+            Claims claims = getClaims(token);
+            if (claims.getExpiration().before(new Date())) {
+                return null;
+            }
+            Boolean isPending = claims.get("mfa_pending", Boolean.class);
+            if (!Boolean.TRUE.equals(isPending)) {
+                return null;
+            }
+            return claims.getSubject();
+        } catch (JwtException | IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    @Override
     public String extractUsername(String token) {
         return getClaims(token).getSubject();
     }
@@ -60,6 +96,10 @@ public class JwtProviderAdapter implements JwtTokenPort, com.cambistaonline.auth
     public boolean validateToken(String token) {
         try {
             Claims claims = getClaims(token);
+            // Si es un token temporal de MFA, no es un access token completo
+            if (Boolean.TRUE.equals(claims.get("mfa_pending", Boolean.class))) {
+                return false;
+            }
             return !claims.getExpiration().before(new Date());
         } catch (JwtException | IllegalArgumentException e) {
             return false;
