@@ -177,19 +177,52 @@ export const MfaSettingsCard = () => {
               <p style={{ fontSize: '0.85rem', color: '#94a3b8', margin: '0 0 0.5rem 0' }}>
                 ¿No puedes escanear el código? Ingresa esta clave manual en tu app:
               </p>
-              <code style={{
-                background: 'rgba(0, 0, 0, 0.4)',
-                padding: '0.4rem 0.8rem',
-                borderRadius: '4px',
-                color: '#facc15',
-                fontSize: '0.95rem',
-                fontWeight: 700,
-                display: 'inline-block',
-                letterSpacing: '0.1rem',
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.8rem' }}>
+                <code style={{
+                  background: 'rgba(0, 0, 0, 0.4)',
+                  padding: '0.4rem 0.8rem',
+                  borderRadius: '4px',
+                  color: '#facc15',
+                  fontSize: '0.95rem',
+                  fontWeight: 700,
+                  display: 'inline-block',
+                  letterSpacing: '0.1rem',
+                }}>
+                  {setupData.manualKey}
+                </code>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(setupData.manualKey);
+                    setMessage({ text: '📋 Clave manual copiada al portapapeles', type: 'success' });
+                  }}
+                  title="Copiar clave"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    color: '#e2e8f0',
+                    padding: '0.35rem 0.65rem',
+                    borderRadius: '4px',
+                    fontSize: '0.8rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  📋 Copiar
+                </button>
+              </div>
+
+              <div style={{
+                fontSize: '0.78rem',
+                color: '#94a3b8',
+                background: 'rgba(15, 23, 42, 0.7)',
+                padding: '0.6rem 0.8rem',
+                borderRadius: '6px',
                 marginBottom: '1rem',
+                lineHeight: 1.4,
+                borderLeft: '3px solid #38bdf8',
               }}>
-                {setupData.manualKey}
-              </code>
+                ℹ️ <strong>Consejo:</strong> Si tenías una cuenta previa de <em>CambistaOnline</em> en tu app de autenticación, bórrala antes de escanear este código. Asegúrate de ingresar el código antes de que termine el círculo de 30 segundos.
+              </div>
 
               <h4 style={{ margin: '0.8rem 0 0.5rem 0', fontSize: '1rem', color: '#38bdf8' }}>
                 Paso 2: Ingresa el código de 6 dígitos que muestra tu app

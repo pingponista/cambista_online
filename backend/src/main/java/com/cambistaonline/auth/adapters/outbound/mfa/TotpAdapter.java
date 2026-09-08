@@ -22,7 +22,7 @@ public class TotpAdapter implements TotpPort {
     private static final int SECRET_BYTE_LENGTH = 20; // 160 bits recomendado por RFC 4226/6238
     private static final int TIME_STEP_SECONDS = 30;
     private static final int DIGITS = 6;
-    private static final int WINDOW = 1; // Tolerancia de ±1 intervalo de 30s (clock drift)
+    private static final int WINDOW = 4; // Tolerancia de ±4 intervalos de 30s (±120s para compensar desincronización de reloj móvil/servidor)
 
     private final SecureRandom random = new SecureRandom();
 
@@ -35,10 +35,10 @@ public class TotpAdapter implements TotpPort {
 
     @Override
     public String getOtpAuthUri(String secret, String accountName, String issuer) {
-        String encodedIssuer = URLEncoder.encode(issuer, StandardCharsets.UTF_8).replace("+", "%20");
-        String encodedAccount = URLEncoder.encode(accountName, StandardCharsets.UTF_8).replace("+", "%20");
+        String cleanIssuer = (issuer != null && !issuer.isBlank()) ? issuer.trim() : "CambistaOnline";
+        String cleanAccount = (accountName != null && !accountName.isBlank()) ? accountName.trim() : "user";
         return String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s&algorithm=SHA1&digits=%d&period=%d",
-                encodedIssuer, encodedAccount, secret, encodedIssuer, DIGITS, TIME_STEP_SECONDS);
+                cleanIssuer, cleanAccount, secret, cleanIssuer, DIGITS, TIME_STEP_SECONDS);
     }
 
     @Override
@@ -70,7 +70,7 @@ public class TotpAdapter implements TotpPort {
         return false;
     }
 
-    private String generateTotpCode(byte[] key, long interval) {
+    String generateTotpCode(byte[] key, long interval) {
         try {
             byte[] data = ByteBuffer.allocate(8).putLong(interval).array();
             Mac mac = Mac.getInstance("HmacSHA1");
@@ -92,7 +92,7 @@ public class TotpAdapter implements TotpPort {
 
     // ─── Codificador y Decodificador Base32 puro según RFC 4648 ───────────────
 
-    private String base32Encode(byte[] data) {
+    String base32Encode(byte[] data) {
         StringBuilder sb = new StringBuilder((data.length * 8 + 4) / 5);
         int buffer = 0;
         int next = 0;
@@ -115,7 +115,7 @@ public class TotpAdapter implements TotpPort {
         return sb.toString();
     }
 
-    private byte[] base32Decode(String base32) {
+    byte[] base32Decode(String base32) {
         String clean = base32.trim().replace("=", "");
         int outputLength = clean.length() * 5 / 8;
         byte[] result = new byte[outputLength];

@@ -24,31 +24,36 @@ public class SetupMfaService implements SetupMfaUseCase {
         User user = userPersistencePort.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado con email: " + userEmail));
 
-        String secret = totpPort.generateSecret();
+        // Si el usuario ya tiene un secreto generado pendiente de activación, reutilizarlo
+        // para evitar desincronizaciones si recarga la página o reintenta.
+        String secret;
+        if (!user.isMfaEnabled() && user.getMfaSecret() != null && !user.getMfaSecret().isBlank()) {
+            secret = user.getMfaSecret();
+        } else {
+            secret = totpPort.generateSecret();
+            User updated = User.builder()
+                    .id(user.getId())
+                    .email(user.getEmail())
+                    .password(user.getPassword())
+                    .firstName(user.getFirstName())
+                    .lastName(user.getLastName())
+                    .dni(user.getDni())
+                    .companyName(user.getCompanyName())
+                    .ruc(user.getRuc())
+                    .legalRepresentativeName(user.getLegalRepresentativeName())
+                    .role(user.getRole())
+                    .status(user.getStatus())
+                    .createdAt(user.getCreatedAt())
+                    .mfaEnabled(false)
+                    .mfaSecret(secret)
+                    .authProvider(user.getAuthProvider())
+                    .providerId(user.getProviderId())
+                    .build();
+
+            userPersistencePort.save(updated);
+        }
+
         String qrCodeUri = totpPort.getOtpAuthUri(secret, user.getEmail().getValue(), "CambistaOnline");
-
-        // Almacenar el secreto pendiente en el usuario (mfaEnabled sigue false hasta que lo confirme con un código válido)
-        User updated = User.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .password(user.getPassword())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .dni(user.getDni())
-                .companyName(user.getCompanyName())
-                .ruc(user.getRuc())
-                .legalRepresentativeName(user.getLegalRepresentativeName())
-                .role(user.getRole())
-                .status(user.getStatus())
-                .createdAt(user.getCreatedAt())
-                .mfaEnabled(false)
-                .mfaSecret(secret)
-                .authProvider(user.getAuthProvider())
-                .providerId(user.getProviderId())
-                .build();
-
-        userPersistencePort.save(updated);
-
         return new SetupMfaResponseDto(secret, qrCodeUri, secret);
     }
 }
