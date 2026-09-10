@@ -104,3 +104,4 @@ tmp/
 *.temp
 .gemini/
 brain/
+EXPLICACION_TOLERANCIA_TOTP_MFA.md
