@@ -54,12 +54,15 @@ public class GitHubOAuthAdapter implements OAuthClientPort {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+            headers.set(HttpHeaders.USER_AGENT, "CambistaOnline-App");
 
-            Map<String, String> body = Map.of(
-                    "client_id", clientId,
-                    "client_secret", clientSecret,
-                    "code", code
-            );
+            java.util.Map<String, String> body = new java.util.HashMap<>();
+            body.put("client_id", clientId);
+            body.put("client_secret", clientSecret);
+            body.put("code", code);
+            if (redirectUri != null && !redirectUri.isBlank()) {
+                body.put("redirect_uri", redirectUri);
+            }
 
             HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
             ResponseEntity<Map<String, Object>> tokenResponse = restTemplate.exchange(
@@ -79,6 +82,7 @@ public class GitHubOAuthAdapter implements OAuthClientPort {
             HttpHeaders authHeaders = new HttpHeaders();
             authHeaders.setBearerAuth(accessToken);
             authHeaders.setAccept(List.of(MediaType.APPLICATION_JSON));
+            authHeaders.set(HttpHeaders.USER_AGENT, "CambistaOnline-App");
             HttpEntity<Void> userRequest = new HttpEntity<>(authHeaders);
 
             ResponseEntity<Map<String, Object>> userResponse = restTemplate.exchange(
