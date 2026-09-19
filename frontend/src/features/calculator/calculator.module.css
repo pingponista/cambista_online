@@ -91,12 +91,13 @@
 
 .tabActive {
   background: var(--bg-surface);
-  color: var(--color-accent-green-hover);
-  box-shadow: var(--shadow-sm);
+  color: var(--color-accent-green);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
 }
 
 .inputCard {
-  background: var(--bg-main);
+  background: var(--bg-dark-card);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
   padding: 1rem 1.2rem;
@@ -143,19 +144,23 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: var(--color-primary);
+  background: var(--bg-card-hover);
   color: var(--color-accent-green);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid var(--bg-surface);
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
-  transition: transform 0.2s ease;
+  border: 2px solid var(--border-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
   cursor: pointer;
 }
 
 .swapBtn:hover {
+  background: var(--color-accent-green);
+  color: #03150c;
+  border-color: var(--color-accent-green);
   transform: rotate(180deg) scale(1.05);
+  box-shadow: 0 0 16px var(--primary-glow);
 }
 
 .savingsWrapper {
@@ -165,9 +170,9 @@
 
 /* Promo Banner */
 .promoBanner {
-  background: #ecfdf5;
-  border: 1px solid #a7f3d0;
-  color: #065f46;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #34d399;
   padding: 0.75rem 1rem;
   border-radius: var(--border-radius);
   font-size: 0.88rem;
@@ -180,9 +185,9 @@
 
 /* CambiPuntos Section */
 .pointsCard {
-  background: rgba(139, 92, 246, 0.08);
-  border: 1px solid rgba(139, 92, 246, 0.25);
-  color: #5b21b6;
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  color: #c4b5fd;
   border-radius: var(--border-radius);
   padding: 1.2rem;
   margin-bottom: 1.2rem;
@@ -195,11 +200,12 @@
   font-weight: 700;
   font-size: 0.95rem;
   margin-bottom: 0.8rem;
+  color: #e9d5ff;
 }
 
 .pointsSlider {
   width: 100%;
-  accent-color: #7c3aed;
+  accent-color: #a78bfa;
   cursor: pointer;
   margin-bottom: 0.6rem;
 }
@@ -208,7 +214,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 0.85rem;
-  color: #6d28d9;
+  color: #c4b5fd;
   font-weight: 600;
 }
 

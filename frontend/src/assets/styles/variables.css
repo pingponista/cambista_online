@@ -1,35 +1,61 @@
 :root {
-  /* Brand Colors */
-  --color-primary: #0f172a;
-  --color-primary-hover: #1e293b;
+  /* Typography */
+  --font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-primary: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-numeric: 'JetBrains Mono', 'Inter', monospace;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Dark Palette: Backgrounds */
+  --bg-main: #0a0f1d;
+  --bg-dark: #0a0f1d;
+  --bg-surface: #121b2d;
+  --bg-card: #121b2d;
+  --bg-card-hover: #1c273e;
+  --bg-dark-card: #0d1525;
+  --bg-glass: rgba(18, 27, 45, 0.85);
+
+  /* Dark Palette: Text */
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --text-inverse: #0a0f1d;
+
+  /* Dark Palette: Borders */
+  --border-color: rgba(255, 255, 255, 0.12);
+  --border-focus: #10b981;
+  --border-glow: rgba(16, 185, 129, 0.4);
+
+  /* Brand Colors & Accents */
+  --primary-500: #10b981;
+  --primary-600: #059669;
+  --primary-glow: rgba(16, 185, 129, 0.25);
   --color-accent-green: #10b981;
   --color-accent-green-hover: #059669;
-  --color-accent-green-light: rgba(16, 185, 129, 0.12);
-  
-  --color-accent-blue: #3b82f6;
-  --color-accent-yellow: #f59e0b;
-  --color-accent-red: #ef4444;
+  --color-accent-green-light: rgba(16, 185, 129, 0.15);
 
-  /* Backgrounds & Neutral */
-  --bg-main: #f8fafc;
-  --bg-surface: #ffffff;
-  --bg-dark-card: #1e293b;
-  
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --text-inverse: #ffffff;
+  --color-primary: #1e293b;
+  --color-primary-hover: #334155;
 
-  --border-color: #e2e8f0;
-  --border-focus: #10b981;
+  --accent-blue: #38bdf8;
+  --color-accent-blue: #38bdf8;
+  --accent-purple: #a78bfa;
+  --color-accent-purple: #a78bfa;
+  --accent-yellow: #fbbf24;
+  --color-accent-yellow: #fbbf24;
+  --accent-red: #f87171;
+  --color-accent-red: #f87171;
 
-  /* Typography */
-  --font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
-  --font-numeric: 'JetBrains Mono', 'Inter', monospace;
+  /* Elevation & Shadows */
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+  --shadow-card: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+  --shadow-main: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 25px rgba(16, 185, 129, 0.2);
 
-  /* Elevation & Effects */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-card: 0 10px 30px -5px rgba(15, 23, 42, 0.08);
-  --shadow-glow: 0 0 20px rgba(16, 185, 129, 0.2);
+  /* Border Radii */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-pill: 9999px;
 
   --border-radius-sm: 8px;
   --border-radius: 14px;

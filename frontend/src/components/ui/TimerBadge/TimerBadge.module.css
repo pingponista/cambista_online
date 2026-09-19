@@ -2,9 +2,9 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: #fef3c7;
-  border: 1px solid #fde68a;
-  color: #92400e;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #fbbf24;
   padding: 0.4rem 0.85rem;
   border-radius: var(--border-radius-pill);
   font-size: 0.85rem;
@@ -16,8 +16,8 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #d97706;
-  box-shadow: 0 0 8px #d97706;
+  background: #fbbf24;
+  box-shadow: 0 0 8px #fbbf24;
   animation: blink 1.5s infinite;
 }
 

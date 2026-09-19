@@ -24,7 +24,7 @@ export const AboutPage = () => {
       <div className={styles.featuresGrid}>
         <Card className={styles.featureCard}>
           <div className={styles.iconCircle}>
-            <ShieldCheck size={28} color="var(--color-primary)" />
+            <ShieldCheck size={28} color="var(--accent-blue)" />
           </div>
           <h3>Seguridad Garantizada</h3>
           <p>
@@ -34,7 +34,7 @@ export const AboutPage = () => {
 
         <Card className={styles.featureCard}>
           <div className={styles.iconCircle}>
-            <Zap size={28} color="var(--color-accent-green-hover)" />
+            <Zap size={28} color="var(--color-accent-green)" />
           </div>
           <h3>Transferencias en 15 minutos</h3>
           <p>
@@ -44,7 +44,7 @@ export const AboutPage = () => {
 
         <Card className={styles.featureCard}>
           <div className={styles.iconCircle}>
-            <Award size={28} color="var(--color-primary)" />
+            <Award size={28} color="var(--accent-yellow)" />
           </div>
           <h3>El Mejor Tipo de Cambio</h3>
           <p>
@@ -56,7 +56,7 @@ export const AboutPage = () => {
       {/* About Description */}
       <Card style={{ marginBottom: '2.5rem', padding: '2rem' }}>
         <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <Building2 size={24} color="var(--color-primary)" />
+          <Building2 size={24} color="var(--accent-blue)" />
           Quiénes Somos
         </h2>
         <p style={{ color: 'var(--text-muted)', lineHeight: '1.7', marginBottom: '1rem' }}>
@@ -82,13 +82,13 @@ export const AboutPage = () => {
       {/* Support & Contact Section */}
       <Card style={{ padding: '2rem' }}>
         <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <Phone size={24} color="var(--color-primary)" />
+          <Phone size={24} color="var(--accent-blue)" />
           Central de Soporte y Atención al Cliente
         </h2>
 
         <div className={styles.contactGrid}>
           <div className={styles.contactItem}>
-            <MessageSquare size={20} color="var(--color-accent-green-hover)" />
+            <MessageSquare size={20} color="var(--color-accent-green)" />
             <div>
               <strong>WhatsApp de Atención:</strong>
               <div>+51 987 654 321</div>
@@ -96,7 +96,7 @@ export const AboutPage = () => {
           </div>
 
           <div className={styles.contactItem}>
-            <Phone size={20} color="var(--color-primary)" />
+            <Phone size={20} color="var(--accent-blue)" />
             <div>
               <strong>Central Telefónica:</strong>
               <div>+51 (01) 708-9900</div>
@@ -104,7 +104,7 @@ export const AboutPage = () => {
           </div>
 
           <div className={styles.contactItem}>
-            <Mail size={20} color="var(--color-primary)" />
+            <Mail size={20} color="var(--accent-blue)" />
             <div>
               <strong>Correo Institucional:</strong>
               <div>soporte@cambistaonline.pe</div>
@@ -112,7 +112,7 @@ export const AboutPage = () => {
           </div>
 
           <div className={styles.contactItem}>
-            <Clock size={20} color="var(--color-primary)" />
+            <Clock size={20} color="var(--accent-blue)" />
             <div>
               <strong>Horarios de Atención:</strong>
               <div>Lun - Vie: 8:00 AM - 7:00 PM</div>
@@ -122,7 +122,7 @@ export const AboutPage = () => {
         </div>
 
         <div style={{ marginTop: '1.8rem', paddingTop: '1.2rem', borderTop: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-          <MapPin size={20} color="var(--color-primary)" />
+          <MapPin size={20} color="var(--accent-blue)" />
           <span><strong>Oficina Principal:</strong> Av. Víctor Andrés Belaunde 147, Real Empresarial, San Isidro, Lima - Perú.</span>
         </div>
       </Card>

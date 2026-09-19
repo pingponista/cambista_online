@@ -243,7 +243,7 @@ export const Calculator = () => {
                     <span>Ajuste estacional</span>
                     <span className="tabular-nums">{seasonalAdjRate >= 0 ? `+${seasonalAdjRate.toFixed(4)}` : seasonalAdjRate.toFixed(4)}</span>
                   </div>
-                  <div className={styles.breakdownRow} style={{ color: redeemedPoints > 0 ? '#6d28d9' : 'inherit' }}>
+                  <div className={styles.breakdownRow} style={{ color: redeemedPoints > 0 ? 'var(--accent-purple, #a78bfa)' : 'inherit' }}>
                     <span>Canje puntos</span>
                     <span className="tabular-nums">-{pointImprovement.toFixed(4)}</span>
                   </div>
@@ -252,7 +252,7 @@ export const Calculator = () => {
 
                   <div className={styles.breakdownTotal}>
                     <span>TC final</span>
-                    <span className="tabular-nums" style={{ color: 'var(--color-accent-green-hover)' }}>{effectiveRate.toFixed(4)}</span>
+                    <span className="tabular-nums" style={{ color: 'var(--color-accent-green)' }}>{effectiveRate.toFixed(4)}</span>
                   </div>
                 </div>
               )}

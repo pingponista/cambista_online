@@ -61,7 +61,7 @@ export const Step2Transfer = () => {
       </p>
 
       <div className={styles.bankBox}>
-        <div style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '0.75rem', color: 'var(--color-primary)' }}>
+        <div style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: '0.75rem', color: 'var(--text-main)' }}>
           Cuentas {bankInfo.bank} - {bankInfo.holder}
         </div>
 

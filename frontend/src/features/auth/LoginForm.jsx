@@ -142,14 +142,36 @@ export const LoginForm = () => {
         )}
 
         {/* Demo Credentials Helper Box */}
-        <div style={{ background: 'rgba(59, 130, 246, 0.12)', border: '1px solid rgba(59, 130, 246, 0.3)', padding: '0.85rem 1rem', borderRadius: 'var(--radius-sm, 8px)', marginBottom: '1.2rem', fontSize: '0.85rem' }}>
-          <div style={{ fontWeight: 700, color: '#3b82f6', marginBottom: '0.2rem' }}>💡 Credenciales Demo (Acceso Rápido):</div>
-          <div>Email: <strong>demo@cambistaonline.pe</strong></div>
-          <div>Contraseña: <strong>demo1234</strong></div>
+        <div style={{
+          background: 'rgba(30, 58, 138, 0.25)',
+          border: '1px solid rgba(59, 130, 246, 0.4)',
+          padding: '0.9rem 1.1rem',
+          borderRadius: 'var(--border-radius-sm, 8px)',
+          marginBottom: '1.2rem',
+          fontSize: '0.86rem',
+          color: '#cbd5e1',
+        }}>
+          <div style={{ fontWeight: 700, color: '#60a5fa', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <span>💡</span> Credenciales Demo (Acceso Rápido):
+          </div>
+          <div style={{ marginBottom: '0.15rem' }}>Email: <strong style={{ color: '#ffffff' }}>demo@cambistaonline.pe</strong></div>
+          <div>Contraseña: <strong style={{ color: '#ffffff' }}>demo1234</strong></div>
           <button
             type="button"
             onClick={handleDemoLogin}
-            style={{ marginTop: '0.6rem', width: '100%', background: '#3b82f6', color: '#fff', padding: '0.45rem', borderRadius: '4px', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}
+            style={{
+              marginTop: '0.75rem',
+              width: '100%',
+              background: '#2563eb',
+              color: '#ffffff',
+              padding: '0.55rem',
+              borderRadius: '6px',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)',
+            }}
           >
             ⚡ Ingresar directamente con Demo
           </button>

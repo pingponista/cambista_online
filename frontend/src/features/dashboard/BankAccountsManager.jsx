@@ -41,7 +41,7 @@ export const BankAccountsManager = () => {
       </div>
 
       {showAddForm && (
-        <Card style={{ marginBottom: '2rem', background: 'var(--bg-main)' }}>
+        <Card style={{ marginBottom: '2rem', background: 'var(--bg-dark-card)', border: '1px solid var(--border-color)' }}>
           <h4 style={{ marginBottom: '1rem', fontWeight: 700 }}>Agregar Nueva Cuenta Bancaria</h4>
           <form onSubmit={handleAddAccount} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div>
@@ -49,7 +49,7 @@ export const BankAccountsManager = () => {
               <select
                 value={newAcc.bank}
                 onChange={(e) => setNewAcc({ ...newAcc, bank: e.target.value })}
-                style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--border-color)' }}
+                style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--border-color)', background: 'var(--bg-surface)', color: 'var(--text-main)' }}
               >
                 <option value="BCP">BCP</option>
                 <option value="Interbank">Interbank</option>
@@ -63,7 +63,7 @@ export const BankAccountsManager = () => {
               <select
                 value={newAcc.currency}
                 onChange={(e) => setNewAcc({ ...newAcc, currency: e.target.value })}
-                style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--border-color)' }}
+                style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--border-color)', background: 'var(--bg-surface)', color: 'var(--text-main)' }}
               >
                 <option value="USD">Dólares (USD)</option>
                 <option value="PEN">Soles (PEN)</option>
@@ -79,7 +79,7 @@ export const BankAccountsManager = () => {
                 placeholder="Ej: 193-98129381-0-12"
                 value={newAcc.number}
                 onChange={(e) => setNewAcc({ ...newAcc, number: e.target.value })}
-                style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--border-color)' }}
+                style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--border-color)', background: 'var(--bg-surface)', color: 'var(--text-main)' }}
                 className="tabular-nums"
               />
             </div>
@@ -92,7 +92,7 @@ export const BankAccountsManager = () => {
                 placeholder="Ej: 002193009812938101214"
                 value={newAcc.cci}
                 onChange={(e) => setNewAcc({ ...newAcc, cci: e.target.value })}
-                style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--border-color)' }}
+                style={{ width: '100%', padding: '0.75rem', borderRadius: 'var(--border-radius-sm)', border: '1px solid var(--border-color)', background: 'var(--bg-surface)', color: 'var(--text-main)' }}
                 className="tabular-nums"
               />
             </div>
@@ -109,7 +109,7 @@ export const BankAccountsManager = () => {
         {accounts.map((acc) => (
           <Card key={acc.id} hoverable style={{ position: 'relative' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
-              <strong style={{ fontSize: '1.1rem', color: 'var(--color-primary)' }}>{acc.bank} ({acc.currency})</strong>
+              <strong style={{ fontSize: '1.1rem', color: 'var(--text-main)' }}>{acc.bank} ({acc.currency})</strong>
               <button onClick={() => handleDelete(acc.id)} style={{ color: 'var(--color-accent-red)', opacity: 0.7 }}>
                 <Trash2 size={16} />
               </button>

@@ -28,13 +28,14 @@
 }
 
 .navItem:hover {
-  background: var(--bg-main);
+  background: var(--bg-card-hover);
   color: var(--text-main);
 }
 
 .navActive {
   background: var(--color-accent-green-light);
-  color: var(--color-accent-green-hover);
+  color: var(--color-accent-green);
+  border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
 .profileCard {
@@ -60,6 +61,8 @@
   border: 1px solid var(--border-color);
   font-size: 0.85rem;
   font-weight: 600;
+  background: var(--bg-surface);
+  color: var(--text-main);
 }
 
 .table {
@@ -79,31 +82,35 @@
 .table td {
   padding: 1rem;
   border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
 }
 
 .statusCompleted {
   background: var(--color-accent-green-light);
-  color: var(--color-accent-green-hover);
+  color: var(--color-accent-green);
   padding: 0.25rem 0.6rem;
   border-radius: var(--border-radius-pill);
   font-size: 0.8rem;
   font-weight: 700;
+  border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .statusPending {
-  background: rgba(245, 158, 11, 0.12);
+  background: rgba(245, 158, 11, 0.15);
   color: var(--color-accent-yellow);
   padding: 0.25rem 0.6rem;
   border-radius: var(--border-radius-pill);
   font-size: 0.8rem;
   font-weight: 700;
+  border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 .statusCancelled {
-  background: rgba(239, 68, 68, 0.12);
+  background: rgba(239, 68, 68, 0.15);
   color: var(--color-accent-red);
   padding: 0.25rem 0.6rem;
   border-radius: var(--border-radius-pill);
   font-size: 0.8rem;
   font-weight: 700;
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
